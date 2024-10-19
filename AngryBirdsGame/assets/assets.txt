@@ -7,6 +7,11 @@ black.png
 blue.png
 box.png
 box.png.jpg
+data/default.fnt
+data/default.png
+data/uiskin.atlas
+data/uiskin.json
+data/uiskin.png
 libgdx.png
 loading.png
 logo.png
