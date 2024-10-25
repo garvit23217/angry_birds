@@ -18,7 +18,7 @@ public class loadingScreen extends ScreenAdapter {
     @Override
     public void show() {
         backgroundImage = new Texture("whitebg.png");
-        logoImage = new Texture("logo.png");
+        logoImage = new Texture("logo2.png");
     }
 
     @Override
@@ -31,7 +31,7 @@ public class loadingScreen extends ScreenAdapter {
 
         game.getBatch().begin();
         game.getBatch().draw(backgroundImage, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        game.getBatch().draw(logoImage, x/4, y/4, x/2, y/2);
+        game.getBatch().draw(logoImage, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         game.getBatch().end();
 
         time += delta;
