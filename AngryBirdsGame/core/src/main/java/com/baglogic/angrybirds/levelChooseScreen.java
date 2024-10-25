@@ -29,22 +29,34 @@ public class levelChooseScreen extends ScreenAdapter {
 
         Gdx.input.setInputProcessor(stage);
 
+        //System.out.println("Width: " + screenWidth);
+        //System.out.println("Height : " + screenHeight);
+
         Texture level1Texture = new Texture("lvl1.png");
         Texture level2Texture = new Texture("lvl2.png");
         Texture level3Texture = new Texture("lvl3.png");
+        Texture backTexture = new Texture("back.png");
 
         ImageButton level1Button = new ImageButton(new TextureRegionDrawable(level1Texture));
         ImageButton level2Button = new ImageButton(new TextureRegionDrawable(level2Texture));
         ImageButton level3Button = new ImageButton(new TextureRegionDrawable(level3Texture));
+        ImageButton backButton = new ImageButton(new TextureRegionDrawable(backTexture));
 
-        level1Button.setPosition(screenWidth/2 - screenWidth/3, screenHeight/2);
-        level1Button.setSize(screenWidth/4, screenHeight/4);
+        level1Button.setPosition(400, 500);
+        level1Button.setSize(200, 200);
+        level1Button.getImageCell().minSize(200, 200);
 
-        level2Button.setPosition(screenWidth/2, screenHeight/2);
-        level2Button.setSize(screenWidth/4, screenHeight/4);
+        level2Button.setPosition(850, 500);
+        level2Button.setSize(200, 200);
+        level2Button.getImageCell().minSize(200, 200);
 
-        level3Button.setPosition(screenWidth/2 + screenWidth/3, screenHeight/2);
-        level3Button.setSize(screenWidth/4, screenHeight/4);
+        level3Button.setPosition(1300, 500);
+        level3Button.setSize(200, 200);
+        level3Button.getImageCell().minSize(200, 200);
+
+        backButton.setPosition(50, 50);
+        backButton.setSize(200, 200);
+        backButton.getImageCell().minSize(200, 200);
 
         level1Button.addListener(new ClickListener() {
             @Override
@@ -67,9 +79,17 @@ public class levelChooseScreen extends ScreenAdapter {
             }
         });
 
+        backButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(game.startScreen);
+            }
+        });
+
         stage.addActor(level1Button);
         stage.addActor(level2Button);
         stage.addActor(level3Button);
+        stage.addActor(backButton);
     }
 
     @Override

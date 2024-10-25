@@ -40,15 +40,17 @@ public class startScreen extends ScreenAdapter {
         ImageButton playButton = new ImageButton(new TextureRegionDrawable(playTexture));
         ImageButton quitButton = new ImageButton(new TextureRegionDrawable(quitTexture));
 
-        playButton.setPosition(7f * screenWidth / 8f, 7f * screenHeight / 8f);
-        playButton.setSize(screenWidth / 4f, screenHeight / 4f);
+        playButton.setPosition(850,700);
+        playButton.setSize(250, 250);
+        playButton.getImageCell().minSize(250, 250);
 
-        quitButton.setPosition(7f * screenWidth / 8f, 7f * screenHeight / 8f - screenHeight / 2f);
-        quitButton.setSize(screenWidth / 4f, screenHeight / 4f);
+        quitButton.setPosition(850, 350);
+        quitButton.setSize(250, 250);
+        quitButton.getImageCell().minSize(250, 250);
 
-        playButton.addListener(new ChangeListener() {
+        playButton.addListener(new ClickListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {
+            public void clicked(InputEvent event, float x, float y) {
                 game.setScreen(game.levelChooseScreen);
             }
         });
