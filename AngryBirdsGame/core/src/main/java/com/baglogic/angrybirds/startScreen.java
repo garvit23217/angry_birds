@@ -6,19 +6,19 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 
 public class startScreen extends ScreenAdapter {
     private final Core game;
     private Texture backgroundImage;
     private Stage stage;
-    private Skin skin;
-    private TextButton startButton;
-    private TextButton exitButton;
+    private Texture playTexture;
+    private Texture quitTexture;
 
     public startScreen(Core game) {
         this.game = game;
@@ -26,39 +26,42 @@ public class startScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        backgroundImage = new Texture("bg5.png");
+        backgroundImage = new Texture("bg7.png");
         stage = new Stage(game.getViewport());
 
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
         Gdx.input.setInputProcessor(stage);
-        skin = new Skin(Gdx.files.internal("data/uiskin.json"));
 
-        startButton = new TextButton("Start", skin);
-        startButton.setPosition(7f*screenWidth/8f,7f*screenHeight/8f);
-        startButton.setSize(screenWidth/4f, screenHeight/4f);
+        playTexture = new Texture("play.png");
+        quitTexture = new Texture("quit.png");
 
-        startButton.addListener(new ChangeListener() {
+        ImageButton playButton = new ImageButton(new TextureRegionDrawable(playTexture));
+        ImageButton quitButton = new ImageButton(new TextureRegionDrawable(quitTexture));
+
+        playButton.setPosition(7f * screenWidth / 8f, 7f * screenHeight / 8f);
+        playButton.setSize(screenWidth / 4f, screenHeight / 4f);
+
+        quitButton.setPosition(7f * screenWidth / 8f, 7f * screenHeight / 8f - screenHeight / 2f);
+        quitButton.setSize(screenWidth / 4f, screenHeight / 4f);
+
+        playButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 game.setScreen(game.levelChooseScreen);
             }
         });
 
-        exitButton = new TextButton("Exit", skin);
-        exitButton.setPosition(7f*screenWidth/8f, 7f*screenHeight/8f - screenHeight/2f);
-        exitButton.setSize(screenWidth/4f, screenHeight/4f);
-
-        exitButton.addListener(new ClickListener() {
+        quitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 Gdx.app.exit();
             }
         });
 
-        stage.addActor(startButton);
-        stage.addActor(exitButton);
+        stage.addActor(playButton);
+        stage.addActor(quitButton);
     }
 
     @Override
@@ -72,5 +75,13 @@ public class startScreen extends ScreenAdapter {
 
         stage.act(delta);
         stage.draw();
+    }
+
+    @Override
+    public void dispose() {
+        backgroundImage.dispose();
+        playTexture.dispose();
+        quitTexture.dispose();
+        stage.dispose();
     }
 }
