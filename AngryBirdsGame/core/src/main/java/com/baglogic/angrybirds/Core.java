@@ -18,6 +18,7 @@ public class Core extends Game {
     public Screen loadingScreen;
     public Screen levelChooseScreen;
     public Screen startScreen;
+    public Screen level1screen;
 
     @Override
     public void create() {
@@ -26,7 +27,7 @@ public class Core extends Game {
         loadingScreen = new loadingScreen(this);
         levelChooseScreen = new levelChooseScreen(this);
         startScreen = new startScreen(this);
-
+        level1screen = new level1screen(this);
         setScreen(loadingScreen);
     }
 

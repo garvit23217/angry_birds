@@ -30,14 +30,12 @@ public class loadingScreen extends ScreenAdapter {
         float y = Gdx.graphics.getHeight();
 
         game.getBatch().begin();
-        game.getBatch().draw(backgroundImage, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); // Draw background image
-        game.getBatch().draw(logoImage, x/4, y/4, x/2, y/2); // Draw logo image
+        game.getBatch().draw(backgroundImage, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        game.getBatch().draw(logoImage, x/4, y/4, x/2, y/2);
         game.getBatch().end();
 
-        // Accumulate the elapsed time
-        time += delta; // Add the time since the last frame
+        time += delta;
 
-        // Check if 3 seconds have passed
         if (time > 3) {
             game.setScreen(game.startScreen);
         }
