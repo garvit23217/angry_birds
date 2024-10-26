@@ -29,12 +29,15 @@ public class level1screen extends ScreenAdapter {
         background = new Texture("bg8.png");
         stage = new Stage(game.getViewport());
 
+        Gdx.input.setInputProcessor(stage);
+
         slingShot = new Texture("slingshot.png");
         black = new Texture("black.png");
         blue = new Texture("blue.png");
         red = new Texture("red.png");
         yellow = new Texture("yellow.png");
         Texture pause = new Texture("pause.png");
+        Texture backTexture = new Texture("back.png");
 
         ImageButton pauseButton = new ImageButton(new TextureRegionDrawable(pause));
         pauseButton.setPosition(50, 1000);
@@ -44,10 +47,11 @@ public class level1screen extends ScreenAdapter {
         pauseButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                //to be completed
+                game.setScreen(game.levelChooseScreen);
             }
         });
-        //to be completed
+
+        stage.addActor(pauseButton);
     }
 
     @Override
@@ -66,5 +70,11 @@ public class level1screen extends ScreenAdapter {
 
         stage.act(delta);
         stage.draw();
+    }
+
+    @Override
+    public void dispose() {
+        background.dispose();
+        stage.dispose();
     }
 }
