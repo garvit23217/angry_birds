@@ -32,10 +32,10 @@ public class level1screen extends ScreenAdapter {
         Gdx.input.setInputProcessor(stage);
 
         slingShot = new Texture("slingshot.png");
-        black = new Texture("black.png");
-        blue = new Texture("blue.png");
-        red = new Texture("red.png");
-        yellow = new Texture("yellow.png");
+        //black = new Texture("black.png");
+        //blue = new Texture("blue.png");
+        //red = new Texture("red.png");
+        //yellow = new Texture("yellow.png");
         Texture pause = new Texture("pause.png");
         Texture backTexture = new Texture("back.png");
 
@@ -51,6 +51,15 @@ public class level1screen extends ScreenAdapter {
             }
         });
 
+        Blue blueBird = new Blue();
+        Red redBird = new Red();
+        Yellow yellowBird = new Yellow();
+        Black blackBird = new Black();
+
+        stage.addActor(blueBird);
+        stage.addActor(redBird);
+        stage.addActor(yellowBird);
+        stage.addActor(blackBird);
         stage.addActor(pauseButton);
     }
 
@@ -62,10 +71,10 @@ public class level1screen extends ScreenAdapter {
         game.getBatch().begin();
         game.getBatch().draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         game.getBatch().draw(slingShot,200, 100, 150, 150);
-        game.getBatch().draw(black, 175, 100, 50, 50);
-        game.getBatch().draw(blue, 125, 100, 50, 50);
-        game.getBatch().draw(red, 75, 100, 50 , 50);
-        game.getBatch().draw(yellow, 25, 100, 50, 50);
+        //game.getBatch().draw(black, 175, 100, 50, 50);
+        //game.getBatch().draw(blue, 125, 100, 50, 50);
+        //game.getBatch().draw(red, 75, 100, 50 , 50);
+        //game.getBatch().draw(yellow, 25, 100, 50, 50);
         game.getBatch().end();
 
         stage.act(delta);
