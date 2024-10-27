@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -19,11 +20,18 @@ public class Core extends Game {
     public Screen levelChooseScreen;
     public Screen startScreen;
     public Screen level1screen;
+    private Music backgroundMusic;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         viewport = new FitViewport(1920, 1200);
+
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("theme.mp3"));
+        backgroundMusic.setLooping(true);
+        backgroundMusic.setVolume(0.75f);
+        backgroundMusic.play();
+
         loadingScreen = new loadingScreen(this);
         levelChooseScreen = new levelChooseScreen(this);
         startScreen = new startScreen(this);
@@ -51,5 +59,17 @@ public class Core extends Game {
 
     public FitViewport getViewport() {
         return viewport;
+    }
+
+    public boolean isBackgroundMusicPlaying() {
+        return backgroundMusic.isPlaying();
+    }
+
+    public void pauseBackgroundMusic() {
+        backgroundMusic.pause();
+    }
+
+    public void playBackgroundMusic() {
+        backgroundMusic.play();
     }
 }

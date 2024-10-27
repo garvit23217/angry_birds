@@ -54,5 +54,6 @@ restart.png
 resume.png
 settings.png
 slingshot.png
+theme.mp3
 whitebg.png
 yellow.png
