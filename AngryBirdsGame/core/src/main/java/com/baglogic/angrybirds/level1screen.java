@@ -32,10 +32,7 @@ public class level1screen extends ScreenAdapter {
         Gdx.input.setInputProcessor(stage);
 
         slingShot = new Texture("slingshot.png");
-        //black = new Texture("black.png");
-        //blue = new Texture("blue.png");
-        //red = new Texture("red.png");
-        //yellow = new Texture("yellow.png");
+
         Texture pause = new Texture("pause.png");
         Texture backTexture = new Texture("back.png");
 
@@ -55,12 +52,18 @@ public class level1screen extends ScreenAdapter {
         Red redBird = new Red();
         Yellow yellowBird = new Yellow();
         Black blackBird = new Black();
+        Pig pig1 = new Pig(75,75,1500,200);
+        Pig pig2 = new Pig(125,125,1200,200);
+        Pig pig3 = new Pig(150,150,1350,200);
 
         stage.addActor(blueBird);
         stage.addActor(redBird);
         stage.addActor(yellowBird);
         stage.addActor(blackBird);
         stage.addActor(pauseButton);
+        stage.addActor(pig1);
+        stage.addActor(pig2);
+        stage.addActor(pig3);
     }
 
     @Override

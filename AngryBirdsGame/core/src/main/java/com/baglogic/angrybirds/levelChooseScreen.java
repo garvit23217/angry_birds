@@ -68,14 +68,14 @@ public class levelChooseScreen extends ScreenAdapter {
         level2Button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                //to be completed
+                game.setScreen((game.level2screen));
             }
         });
 
         level3Button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                //to be completed
+                game.setScreen((game.level3screen));
             }
         });
 

@@ -20,6 +20,8 @@ public class Core extends Game {
     public Screen levelChooseScreen;
     public Screen startScreen;
     public Screen level1screen;
+    public Screen level2screen;
+    public Screen level3screen;
     private Music backgroundMusic;
 
     @Override
@@ -36,6 +38,8 @@ public class Core extends Game {
         levelChooseScreen = new levelChooseScreen(this);
         startScreen = new startScreen(this);
         level1screen = new level1screen(this);
+        level2screen = new level2screen(this);
+        level3screen = new level3screen(this);
         setScreen(loadingScreen);
     }
 
