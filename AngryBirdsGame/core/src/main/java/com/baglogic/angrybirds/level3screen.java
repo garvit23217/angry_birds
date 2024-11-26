@@ -10,7 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
-public class level3screen extends ScreenAdapter {
+/*public class level3screen extends ScreenAdapter {
     private Core game;
     private Texture background;
     private Texture slingShot;
@@ -89,4 +89,4 @@ public class level3screen extends ScreenAdapter {
         background.dispose();
         stage.dispose();
     }
-}
+}*/
