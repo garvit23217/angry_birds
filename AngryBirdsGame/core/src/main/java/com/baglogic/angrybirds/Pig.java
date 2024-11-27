@@ -13,9 +13,12 @@ public class Pig extends Actor {
     protected Body body;
     private Texture texture;
     private boolean isDestroyed = false;
+    private float hitpoints;
+    private final int hitpointsFactor = 3;
 
     public Pig(World world, float x, float y, float scale) {
         this.world = world;
+        this.hitpoints = scale * hitpointsFactor * scale;
         texture = new Texture("pig.png");
 
         // Create body definition
@@ -37,11 +40,10 @@ public class Pig extends Actor {
         // Create fixture
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
-        fixtureDef.density = 1f;
+        fixtureDef.density = 0.8f;
         fixtureDef.friction = 0.5f;
-        fixtureDef.restitution = 0.3f;
+        fixtureDef.restitution = 0.4f;
 
-        // Attach fixture to body
         body.createFixture(fixtureDef);
         shape.dispose();
 
@@ -71,6 +73,23 @@ public class Pig extends Actor {
                     body.getPosition().y * BOX_TO_WORLD - getHeight() / 2
             );
         }
+    }
+
+    public void reduceHitpoints(float damage) {
+        hitpoints -= damage;
+        if (hitpoints <= 0) {
+            remove();
+            world.destroyBody(body);
+        }
+    }
+
+
+    public float getHitpoints() {
+        return hitpoints;
+    }
+
+    public Body getPhysicsBody() {
+        return body;
     }
 
     public void dispose() {

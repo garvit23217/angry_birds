@@ -13,6 +13,7 @@ public class Rock extends Actor {
     private Texture texture;
     private Body physicsBody;
     private float width, height;
+    private World world;
 
     public Rock(World world, float x, float y) {
         // Load square texture
@@ -21,6 +22,7 @@ public class Rock extends Actor {
         // Calculate dimensions from texture size
         width = texture.getWidth() * WORLD_TO_BOX;
         height = texture.getHeight() * WORLD_TO_BOX;
+        this.world = world;
 
         // Create physics body
         BodyDef bodyDef = new BodyDef();
@@ -35,7 +37,7 @@ public class Rock extends Actor {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 2.5f;
-        fixtureDef.friction = 0.7f;
+        fixtureDef.friction = 0.6f;
         fixtureDef.restitution = 0.1f;
 
         physicsBody.createFixture(fixtureDef);
@@ -54,6 +56,12 @@ public class Rock extends Actor {
                 width * BOX_TO_WORLD,
                 height * BOX_TO_WORLD);
     }
+
+    public void destroy() {
+        getStage().getRoot().removeActor(this);
+        world.destroyBody(physicsBody);
+    }
+
 
     public void dispose() {
         texture.dispose();
