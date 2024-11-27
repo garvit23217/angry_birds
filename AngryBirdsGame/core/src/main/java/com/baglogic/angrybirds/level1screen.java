@@ -105,7 +105,6 @@ public class level1screen extends ScreenAdapter {
         pig1 = new Pig(world, 1400, ground + 100, 0.375f);
         pig2 = new Pig(world, 1500, ground + 1000, 0.625f);
         pig3 = new Pig(world, 1300, ground +1000, 0.75f);
-
         rockSquare1 = new Rock(world, 1300, ground + 100);
         rockSquare2 = new Rock(world, 1400, ground + 500);
         rockSquare3 = new Rock(world, 1500, ground + 100);
