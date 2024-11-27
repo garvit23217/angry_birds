@@ -1,6 +1,7 @@
 package com.baglogic.angrybirds;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -14,6 +15,7 @@ public class levelChooseScreen extends ScreenAdapter {
     private final Core game;
     private Texture backgroundImage;
     private Stage stage;
+    public Screen level1screen;
 
     public levelChooseScreen(Core game) {
         this.game = game;
@@ -23,6 +25,7 @@ public class levelChooseScreen extends ScreenAdapter {
     public void show() {
         backgroundImage = new Texture("bg6.png");
         stage = new Stage(game.getViewport());
+        level1screen = new level1screen(game);
 
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
@@ -61,7 +64,7 @@ public class levelChooseScreen extends ScreenAdapter {
         level1Button.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(game.level1screen);
+                game.setScreen(game.newlevel1screen());
             }
         });
 
