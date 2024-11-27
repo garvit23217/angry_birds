@@ -13,151 +13,110 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class level1screen extends ScreenAdapter {
-    private static final float scaling = 0.01f;
+    private static final float SCALING = 0.01f;
     private static final float BOX_TO_WORLD = 100f;
 
-    // Ground reference point
-    private static final float ground = 90f;
-    //private static final float BIRD_START_HEIGHT = 1000f; // Higher starting point for birds
+    private static final float GROUND_HEIGHT = 90f;
 
     private Core game;
     private Texture background;
     private Texture slingShot;
     private Stage stage;
 
-    // Box2D physics elements
     private World world;
     private Box2DDebugRenderer debugRenderer;
     private OrthographicCamera box2DCamera;
 
-    // Birds, pigs, and materials
-    private Blue blueBird;
-    private Red redBird;
-    private Yellow yellowBird;
-    private Black blackBird;
+    private Bird[] birds;
+    private int currentBirdIndex = 0;
+    private Bird currentBird;
+    private boolean isDragging = false;
+
     private Pig pig1, pig2, pig3;
+    private Rock rockSquare1, rockSquare2, rockSquare3, rockSquare4;
 
-    // Materials
-    private Wood woodStick1, woodStick2, woodStick3;
-    private Rock rockSquare1, rockSquare2, rockSquare3,rockSquare4;
-    private Glass glassSlab1, glassSlab2, glassSlab3;
-
-    // Ground body to prevent falling through
     private Body groundBody;
 
     public level1screen(Core game) {
         this.game = game;
 
-        // Initialize Box2D world with gravity
+        // Initialize Box2D world
         world = new World(new Vector2(0, -9.8f), true);
         debugRenderer = new Box2DDebugRenderer();
 
-        // Create ground body to stop objects from falling
+        // Create ground body
         createGroundBody();
 
         // Setup Box2D camera
-        box2DCamera = new OrthographicCamera(Gdx.graphics.getWidth() * scaling,
-                Gdx.graphics.getHeight() * scaling);
+        box2DCamera = new OrthographicCamera(Gdx.graphics.getWidth() * SCALING,
+                Gdx.graphics.getHeight() * SCALING);
     }
 
     private void createGroundBody() {
         BodyDef groundBodyDef = new BodyDef();
         groundBodyDef.type = BodyDef.BodyType.StaticBody;
-
-        // Center the ground based on screen width
-        groundBodyDef.position.set(Gdx.graphics.getWidth() / 2f * scaling, ground * scaling);
+        groundBodyDef.position.set(Gdx.graphics.getWidth() / 2f * SCALING, GROUND_HEIGHT * SCALING);
 
         groundBody = world.createBody(groundBodyDef);
 
         PolygonShape groundShape = new PolygonShape();
-
-        // Extend the ground beyond the screen
-        float extendedWidth = Gdx.graphics.getWidth() * scaling * 6f; // 50% wider than the screen
-        groundShape.setAsBox(extendedWidth / 2, 1f); // Half-width and thickness
+        float extendedWidth = Gdx.graphics.getWidth() * SCALING * 6f;
+        groundShape.setAsBox(extendedWidth / 2, 1f);
 
         FixtureDef groundFixtureDef = new FixtureDef();
         groundFixtureDef.shape = groundShape;
         groundFixtureDef.friction = 0.5f;
-        groundFixtureDef.restitution = 0.0f; // Prevent bounce
+        groundFixtureDef.restitution = 0.0f;
 
         groundBody.createFixture(groundFixtureDef);
         groundShape.dispose();
     }
-
 
     @Override
     public void show() {
         background = new Texture("bg8.png");
         slingShot = new Texture("slingshot.png");
 
-        // Create stage
         stage = new Stage(game.getViewport());
         Gdx.input.setInputProcessor(stage);
 
-        // Create birds (positioned much higher)
-        // Create birds (positioned relative to ground, with specific radii)
-        blueBird = new Blue(world, 125, ground + 1000, 0.375f);
-        redBird = new Red(world, 175, ground + 1000, 0.375f);
-        yellowBird = new Yellow(world, 225, ground + 1000, 0.375f);
-        blackBird = new Black(world, 275, ground + 1000, 0.375f);
+        // Initialize birds
+        birds = new Bird[] {
+                new Blue(world, 125, GROUND_HEIGHT + 1000, 0.375f),
+                new Red(world, 175, GROUND_HEIGHT + 1000, 0.375f),
+                new Yellow(world, 225, GROUND_HEIGHT + 1000, 0.375f),
+                new Black(world, 275, GROUND_HEIGHT + 1000, 0.375f)
+        };
+        currentBird = birds[0];
+        stage.addActor(currentBird);
 
-        // Create pigs (positioned above ground)
-        pig1 = new Pig(world, 1400, ground + 100, 0.375f);
-        pig2 = new Pig(world, 1500, ground + 1000, 0.625f);
-        pig3 = new Pig(world, 1300, ground +1000, 0.75f);
-        rockSquare1 = new Rock(world, 1300, ground + 100);
-        rockSquare2 = new Rock(world, 1400, ground + 500);
-        rockSquare3 = new Rock(world, 1500, ground + 100);
-        rockSquare4 = new Rock(world, 1500, ground + 500);
-
-        // Create rock structures
-        /*rockSlab1 = new Rock(world, 1400, ground + 100, true);  // Left vertical slab
-        rockSlab2 = new Rock(world, 1600, ground + 100, true);
-        rockSlab3 = new Rock(world, 1500, ground + 250, false);  // Horizontal slab
-
-        // Add rock slabs to stage
-        stage.addActor(rockSlab1);
-        stage.addActor(rockSlab2);
-        stage.addActor(rockSlab3);*/
-
-        stage.addActor(rockSquare1);
-        stage.addActor(rockSquare2);
-        stage.addActor(rockSquare3);
-        stage.addActor(rockSquare4);
-
-
-        // Create glass structures
-        //glassSlab1 = new Glass(world, 750, ground + 1000, false);
-        //glassSlab2 = new Glass(world, 1050, ground + 10, true);
-        //glassSlab3 = new Glass(world, 1200, ground + 500, false);
-
-        // Add birds to stage
-        stage.addActor(blueBird);
-        stage.addActor(redBird);
-        stage.addActor(yellowBird);
-        stage.addActor(blackBird);
+        // Initialize pigs
+        pig1 = new Pig(world, 1400, GROUND_HEIGHT + 100, 0.375f);
+        pig2 = new Pig(world, 1500, GROUND_HEIGHT + 1000, 0.625f);
+        pig3 = new Pig(world, 1300, GROUND_HEIGHT + 1000, 0.75f);
 
         // Add pigs to stage
         stage.addActor(pig1);
         stage.addActor(pig2);
         stage.addActor(pig3);
 
-        // Add rock to stage
-        /*stage.addActor(rockSlab1);
-        stage.addActor(rockSlab2);
-        stage.addActor(rockSlab3);*/
+        // Initialize rocks
+        rockSquare1 = new Rock(world, 1300, GROUND_HEIGHT + 100);
+        rockSquare2 = new Rock(world, 1400, GROUND_HEIGHT + 500);
+        rockSquare3 = new Rock(world, 1500, GROUND_HEIGHT + 100);
+        rockSquare4 = new Rock(world, 1500, GROUND_HEIGHT + 500);
 
-        // Add glass to stage
-        //stage.addActor(glassSlab1);
-        //stage.addActor(glassSlab2);
-        //stage.addActor(glassSlab3);
+        // Add rocks to stage
+        stage.addActor(rockSquare1);
+        stage.addActor(rockSquare2);
+        stage.addActor(rockSquare3);
+        stage.addActor(rockSquare4);
 
         // Create pause button
         Texture pause = new Texture("pause.png");
         ImageButton pauseButton = new ImageButton(new TextureRegionDrawable(pause));
         pauseButton.setPosition(50, 1000);
         pauseButton.setSize(150, 150);
-        pauseButton.getImageCell().minSize(150, 150);
 
         pauseButton.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
@@ -167,28 +126,27 @@ public class level1screen extends ScreenAdapter {
         });
 
         stage.addActor(pauseButton);
+
+        // Set input processor for bird control
+        Gdx.input.setInputProcessor(new BirdInputHandler());
     }
 
     @Override
     public void render(float delta) {
-        // Clear the screen
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Step physics world
         world.step(delta, 6, 2);
 
-        // Render background
         game.getBatch().begin();
         game.getBatch().draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         game.getBatch().draw(slingShot, 150, 100, 150, 150);
         game.getBatch().end();
 
-        // Render stage
         stage.act(delta);
         stage.draw();
 
-        // Optional: Render Box2D debug lines
+        // Uncomment to render debug lines
         // debugRenderer.render(world, box2DCamera.combined);
     }
 
@@ -199,5 +157,52 @@ public class level1screen extends ScreenAdapter {
         stage.dispose();
         world.dispose();
         debugRenderer.dispose();
+    }
+
+    private class BirdInputHandler extends com.badlogic.gdx.InputAdapter {
+        @Override
+        public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+            Vector2 stageCoords = stage.screenToStageCoordinates(new Vector2(screenX, screenY));
+            if (currentBird.isTouched(stageCoords.x, stageCoords.y)) {
+                isDragging = true;
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean touchDragged(int screenX, int screenY, int pointer) {
+            if (isDragging) {
+                Vector2 stageCoords = stage.screenToStageCoordinates(new Vector2(screenX, screenY));
+                currentBird.setPosition(stageCoords.x - currentBird.getWidth() / 2, stageCoords.y - currentBird.getHeight() / 2);
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+            if (isDragging) {
+                isDragging = false;
+
+                float forceX = (150 - currentBird.getX()) * 10;
+                float forceY = (GROUND_HEIGHT + 20 - currentBird.getY()) * 10;
+
+                currentBird.launch(forceX, forceY);
+                moveToNextBird();
+                return true;
+            }
+            return false;
+        }
+
+        private void moveToNextBird() {
+            if (currentBirdIndex < birds.length - 1) {
+                currentBirdIndex++;
+                currentBird = birds[currentBirdIndex];
+                stage.addActor(currentBird);
+            } else {
+                System.out.println("All birds are launched!");
+            }
+        }
     }
 }
