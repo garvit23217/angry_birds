@@ -21,9 +21,11 @@ public abstract class Bird extends Actor {
     private int height;
     private float radius;
     private boolean isSelected;
+    private World world;
 
 
     public Bird(World world, float x, float y, float radius, String texturePath, float hitpoints) {
+        this.world = world;
         this.radius = radius; // Set the radius
         this.width = (int) (radius * 2 * BOX_TO_WORLD);
         this.height = (int) (radius * 2 * BOX_TO_WORLD);
@@ -43,9 +45,9 @@ public abstract class Bird extends Actor {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
-        fixtureDef.density = 1f;
-        fixtureDef.friction = 0.5f;
-        fixtureDef.restitution = 0.3f;
+        fixtureDef.density = 1.5f;
+        fixtureDef.friction = 0.4f;
+        fixtureDef.restitution = 0.2f;
 
         physicsBody.createFixture(fixtureDef);
         shape.dispose();
@@ -67,7 +69,6 @@ public abstract class Bird extends Actor {
     public void act(float delta) {
         super.act(delta);
 
-        // Update actor position to match physics body
         Vector2 position = physicsBody.getPosition();
         setPosition(position.x * BOX_TO_WORLD - width / 2, position.y * BOX_TO_WORLD - height / 2);
     }
@@ -83,9 +84,11 @@ public abstract class Bird extends Actor {
     public void reduceHitpoints(float damage) {
         hitpoints -= damage;
         if (hitpoints <= 0) {
-            markForRemoval();
+            remove();
+            world.destroyBody(physicsBody);
         }
     }
+
 
     private void markForRemoval() {
         if (getStage() != null) {
