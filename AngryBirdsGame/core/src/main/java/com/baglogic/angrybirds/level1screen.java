@@ -39,7 +39,7 @@ public class level1screen extends ScreenAdapter {
 
     // Materials
     private Wood woodStick1, woodStick2, woodStick3;
-    private Rock rockSquare1, rockSquare2, rockSquare3;
+    private Rock rockSquare1, rockSquare2, rockSquare3,rockSquare4;
     private Glass glassSlab1, glassSlab2, glassSlab3;
 
     // Ground body to prevent falling through
@@ -102,12 +102,14 @@ public class level1screen extends ScreenAdapter {
         blackBird = new Black(world, 275, ground + 1000, 0.375f);
 
         // Create pigs (positioned above ground)
-        pig1 = new Pig(world, 600, ground + 1000, 0.375f);
-        pig2 = new Pig(world, 700, ground + 1000, 0.625f);
-        pig3 = new Pig(world, 800, ground + 1000, 0.75f);
+        pig1 = new Pig(world, 1400, ground + 100, 0.375f);
+        pig2 = new Pig(world, 1500, ground + 1000, 0.625f);
+        pig3 = new Pig(world, 1300, ground +1000, 0.75f);
 
-        rockSquare1 = new Rock(world, 1400, ground + 100);
+        rockSquare1 = new Rock(world, 1300, ground + 100);
         rockSquare2 = new Rock(world, 1400, ground + 500);
+        rockSquare3 = new Rock(world, 1500, ground + 100);
+        rockSquare4 = new Rock(world, 1500, ground + 500);
 
         // Create rock structures
         /*rockSlab1 = new Rock(world, 1400, ground + 100, true);  // Left vertical slab
@@ -121,6 +123,9 @@ public class level1screen extends ScreenAdapter {
 
         stage.addActor(rockSquare1);
         stage.addActor(rockSquare2);
+        stage.addActor(rockSquare3);
+        stage.addActor(rockSquare4);
+
 
         // Create glass structures
         //glassSlab1 = new Glass(world, 750, ground + 1000, false);

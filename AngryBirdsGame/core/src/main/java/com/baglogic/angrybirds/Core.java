@@ -37,7 +37,7 @@ public class Core extends Game {
         loadingScreen = new loadingScreen(this);
         levelChooseScreen = new levelChooseScreen(this);
         startScreen = new startScreen(this);
-        level1screen = new level1screen(this);
+//        level1screen = new level1screen(this);
         //level2screen = new level2screen(this);
         //level3screen = new level3screen(this);
         setScreen(loadingScreen);
@@ -47,6 +47,12 @@ public class Core extends Game {
     public void render() {
         super.render();
     }
+    public Screen newlevel1screen()
+    {
+        level1screen = new level1screen(this);
+        return level1screen;
+    }
+
 
     @Override
     public void dispose() {
