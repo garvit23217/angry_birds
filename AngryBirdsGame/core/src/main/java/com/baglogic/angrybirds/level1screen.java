@@ -78,9 +78,7 @@ public class level1screen extends ScreenAdapter {
         slingShot = new Texture("slingshot.png");
 
         stage = new Stage(game.getViewport());
-        Gdx.input.setInputProcessor(stage);
 
-        // Initialize birds
         birds = new Bird[] {
                 new Blue(world, 125, GROUND_HEIGHT + 1000, 0.375f),
                 new Red(world, 175, GROUND_HEIGHT + 1000, 0.375f),
@@ -90,29 +88,24 @@ public class level1screen extends ScreenAdapter {
         currentBird = birds[0];
         stage.addActor(currentBird);
 
-        // Initialize pigs
         pig1 = new Pig(world, 1400, GROUND_HEIGHT + 100, 0.375f);
         pig2 = new Pig(world, 1500, GROUND_HEIGHT + 1000, 0.625f);
         pig3 = new Pig(world, 1300, GROUND_HEIGHT + 1000, 0.75f);
 
-        // Add pigs to stage
         stage.addActor(pig1);
         stage.addActor(pig2);
         stage.addActor(pig3);
 
-        // Initialize rocks
         rockSquare1 = new Rock(world, 1300, GROUND_HEIGHT + 100);
         rockSquare2 = new Rock(world, 1400, GROUND_HEIGHT + 500);
         rockSquare3 = new Rock(world, 1500, GROUND_HEIGHT + 100);
         rockSquare4 = new Rock(world, 1500, GROUND_HEIGHT + 500);
 
-        // Add rocks to stage
         stage.addActor(rockSquare1);
         stage.addActor(rockSquare2);
         stage.addActor(rockSquare3);
         stage.addActor(rockSquare4);
 
-        // Create pause button
         Texture pause = new Texture("pause.png");
         ImageButton pauseButton = new ImageButton(new TextureRegionDrawable(pause));
         pauseButton.setPosition(50, 1000);
@@ -127,8 +120,8 @@ public class level1screen extends ScreenAdapter {
 
         stage.addActor(pauseButton);
 
-        // Set input processor for bird control
-        Gdx.input.setInputProcessor(new BirdInputHandler());
+        // Set the stage's input processor for UI components
+        Gdx.input.setInputProcessor(stage);
     }
 
     @Override
@@ -143,11 +136,43 @@ public class level1screen extends ScreenAdapter {
         game.getBatch().draw(slingShot, 150, 100, 150, 150);
         game.getBatch().end();
 
+        // Handle bird input manually
+        handleBirdInput();
+
         stage.act(delta);
         stage.draw();
 
         // Uncomment to render debug lines
         // debugRenderer.render(world, box2DCamera.combined);
+    }
+
+    private void handleBirdInput() {
+        if (Gdx.input.isTouched()) {
+            Vector2 touchPos = stage.screenToStageCoordinates(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
+            if (currentBird.isTouched(touchPos.x, touchPos.y)) {
+                isDragging = true;
+                currentBird.setPosition(touchPos.x - currentBird.getWidth() / 2, touchPos.y - currentBird.getHeight() / 2);
+            }
+        } else if (isDragging) {
+            isDragging = false;
+
+            // Launch the bird
+            float forceX = (150 - currentBird.getX()) * 10;
+            float forceY = (GROUND_HEIGHT + 20 - currentBird.getY()) * 10;
+
+            currentBird.launch(forceX, forceY);
+            moveToNextBird();
+        }
+    }
+
+    private void moveToNextBird() {
+        if (currentBirdIndex < birds.length - 1) {
+            currentBirdIndex++;
+            currentBird = birds[currentBirdIndex];
+            stage.addActor(currentBird);
+        } else {
+            System.out.println("All birds are launched!");
+        }
     }
 
     @Override
@@ -157,52 +182,5 @@ public class level1screen extends ScreenAdapter {
         stage.dispose();
         world.dispose();
         debugRenderer.dispose();
-    }
-
-    private class BirdInputHandler extends com.badlogic.gdx.InputAdapter {
-        @Override
-        public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-            Vector2 stageCoords = stage.screenToStageCoordinates(new Vector2(screenX, screenY));
-            if (currentBird.isTouched(stageCoords.x, stageCoords.y)) {
-                isDragging = true;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean touchDragged(int screenX, int screenY, int pointer) {
-            if (isDragging) {
-                Vector2 stageCoords = stage.screenToStageCoordinates(new Vector2(screenX, screenY));
-                currentBird.setPosition(stageCoords.x - currentBird.getWidth() / 2, stageCoords.y - currentBird.getHeight() / 2);
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-            if (isDragging) {
-                isDragging = false;
-
-                float forceX = (150 - currentBird.getX()) * 10;
-                float forceY = (GROUND_HEIGHT + 20 - currentBird.getY()) * 10;
-
-                currentBird.launch(forceX, forceY);
-                moveToNextBird();
-                return true;
-            }
-            return false;
-        }
-
-        private void moveToNextBird() {
-            if (currentBirdIndex < birds.length - 1) {
-                currentBirdIndex++;
-                currentBird = birds[currentBirdIndex];
-                stage.addActor(currentBird);
-            } else {
-                System.out.println("All birds are launched!");
-            }
-        }
     }
 }
