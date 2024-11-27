@@ -157,15 +157,12 @@ public class level1screen extends ScreenAdapter {
         if (Gdx.input.isTouched()) {
             if (!isDragging) {
                 selectBird(touchPos);
+            }
 
-                if (currentBird != null && currentBird.isSelected() && isNearLaunchPosition(touchPos)) {
-                    dragAndLaunchBird(touchPos);
-                }
-            } else {
+            if (currentBird != null && currentBird.isSelected()) {
                 dragAndLaunchBird(touchPos);
             }
         } else if (isDragging && currentBird != null) {
-            isDragging = false;
             releaseBird();
         }
     }
@@ -193,20 +190,21 @@ public class level1screen extends ScreenAdapter {
 
     private void releaseBird() {
         if (currentBird != null && currentBird.isSelected() && isDragging) {
-            float dragX = currentBird.getX() + currentBird.getWidth() / 2;
-            float dragY = currentBird.getY() + currentBird.getHeight() / 2;
+            // Slingshot anchor point
+            float anchorX = 390;  // Slingshot tip x-coordinate
+            float anchorY = GROUND_HEIGHT + 170;  // Slingshot tip y-coordinate
 
-            float launchX = 390;
-            float launchY = GROUND_HEIGHT + 170;
+            // Calculate launch force based on the displacement from the anchor point
+            // The force should be the negative of the displacement vector
+            float forceX = -(currentBird.getX() - anchorX) * 10;  // Invert X
+            float forceY = -(currentBird.getY() - anchorY) * 10;  // Invert Y
 
-            float forceX = (launchX - dragX) * 10;
-            float forceY = (launchY - dragY) * 10;
-
+            // Launch the bird
             currentBird.launch(forceX, forceY);
 
+            // Reset launch state
+            isDragging = false;
             resetLaunchState();
-        } else {
-            setBirdToLaunchPosition(currentBird);
         }
     }
 
