@@ -72,13 +72,13 @@ public abstract class Bird extends Actor {
         setPosition(position.x * BOX_TO_WORLD - width / 2, position.y * BOX_TO_WORLD - height / 2);
     }
 
-    public void launch(float forceX, float forceY) {
-        physicsBody.applyLinearImpulse(
-                new Vector2(forceX * WORLD_TO_BOX, forceY * WORLD_TO_BOX),
-                physicsBody.getWorldCenter(),
-                true
+    public void launch(float velocityX, float velocityY) {
+        // Set the linear velocity of the bird's physics body directly
+        physicsBody.setLinearVelocity(
+                new Vector2(velocityX * WORLD_TO_BOX, velocityY * WORLD_TO_BOX)
         );
     }
+
 
     public void reduceHitpoints(float damage) {
         hitpoints -= damage;

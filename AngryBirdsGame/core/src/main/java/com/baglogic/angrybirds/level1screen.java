@@ -41,7 +41,7 @@ public class level1screen extends ScreenAdapter {
         this.game = game;
 
         // Initialize Box2D world
-        world = new World(new Vector2(0, -9.8f), true);
+        world = new World(new Vector2(0, -4.9f), true);
         debugRenderer = new Box2DDebugRenderer();
 
         // Create ground body
@@ -190,19 +190,17 @@ public class level1screen extends ScreenAdapter {
 
     private void releaseBird() {
         if (currentBird != null && currentBird.isSelected() && isDragging) {
-            // Slingshot anchor point
-            float anchorX = 390;  // Slingshot tip x-coordinate
-            float anchorY = GROUND_HEIGHT + 170;  // Slingshot tip y-coordinate
+            float anchorX = 390;
+            float anchorY = GROUND_HEIGHT + 170;
 
-            // Calculate launch force based on the displacement from the anchor point
-            // The force should be the negative of the displacement vector
-            float forceX = -(currentBird.getX() - anchorX) * 10;  // Invert X
-            float forceY = -(currentBird.getY() - anchorY) * 10;  // Invert Y
+            float dragDistance = Vector2.dst(currentBird.getX(), currentBird.getY(), anchorX, anchorY);
 
-            // Launch the bird
-            currentBird.launch(forceX, forceY);
+            float velocityScale = 10.0f;
+            float velocityX = -(currentBird.getX() - anchorX) * velocityScale;
+            float velocityY = -(currentBird.getY() - anchorY) * velocityScale;
 
-            // Reset launch state
+            currentBird.launch(velocityX, velocityY);
+
             isDragging = false;
             resetLaunchState();
         }
