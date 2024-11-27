@@ -19,8 +19,10 @@ public abstract class Bird extends Actor {
     protected Body physicsBody;
     protected int width;
     protected int height;
+    protected float radius; // Store the bird's radius
 
     public Bird(World world, float x, float y, float radius, String texturePath, float hitpoints) {
+        this.radius = radius; // Set the radius
         this.width = (int) (radius * 2 * BOX_TO_WORLD);
         this.height = (int) (radius * 2 * BOX_TO_WORLD);
         this.hitpoints = hitpoints;
@@ -68,7 +70,6 @@ public abstract class Bird extends Actor {
         setPosition(position.x * BOX_TO_WORLD - width / 2, position.y * BOX_TO_WORLD - height / 2);
     }
 
-    // Method to apply launch force
     public void launch(float forceX, float forceY) {
         physicsBody.applyLinearImpulse(
                 new Vector2(forceX * WORLD_TO_BOX, forceY * WORLD_TO_BOX),
@@ -80,13 +81,11 @@ public abstract class Bird extends Actor {
     public void reduceHitpoints(float damage) {
         hitpoints -= damage;
         if (hitpoints <= 0) {
-            // Bird is destroyed
             markForRemoval();
         }
     }
 
     private void markForRemoval() {
-        // Remove from stage
         if (getStage() != null) {
             getStage().getRoot().removeActor(this);
         }
@@ -98,5 +97,16 @@ public abstract class Bird extends Actor {
 
     public void dispose() {
         birdTexture.dispose();
+    }
+
+    // Circular touch detection
+    public boolean isTouched(float touchX, float touchY) {
+        // Calculate the center of the bird
+        float centerX = getX() + getWidth() / 2;
+        float centerY = getY() + getHeight() / 2;
+
+        // Check if the touch point is within the circle
+        float distance = Vector2.dst(centerX, centerY, touchX, touchY);
+        return distance <= radius * BOX_TO_WORLD;
     }
 }
