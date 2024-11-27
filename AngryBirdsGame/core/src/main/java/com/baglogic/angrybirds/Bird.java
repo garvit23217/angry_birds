@@ -14,12 +14,14 @@ public abstract class Bird extends Actor {
     public static final float WORLD_TO_BOX = 0.01f;
     public static final float BOX_TO_WORLD = 100f;
 
-    protected float hitpoints;
-    protected Texture birdTexture;
-    protected Body physicsBody;
-    protected int width;
-    protected int height;
-    protected float radius; // Store the bird's radius
+    private float hitpoints;
+    private Texture birdTexture;
+    private Body physicsBody;
+    private int width;
+    private int height;
+    private float radius;
+    private boolean isSelected;
+
 
     public Bird(World world, float x, float y, float radius, String texturePath, float hitpoints) {
         this.radius = radius; // Set the radius
@@ -114,4 +116,18 @@ public abstract class Bird extends Actor {
         return physicsBody;
     }
 
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+
+        if (selected) {
+            setColor(1, 1, 1, 1);
+        }
+        else {
+            setColor(1, 1, 1, 0.5f);
+        }
+    }
 }

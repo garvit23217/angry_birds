@@ -157,6 +157,10 @@ public class level1screen extends ScreenAdapter {
         if (Gdx.input.isTouched()) {
             if (!isDragging) {
                 selectBird(touchPos);
+
+                if (currentBird != null && currentBird.isSelected() && isNearLaunchPosition(touchPos)) {
+                    dragAndLaunchBird(touchPos);
+                }
             } else {
                 dragAndLaunchBird(touchPos);
             }
@@ -170,15 +174,15 @@ public class level1screen extends ScreenAdapter {
         for (Bird bird : birds) {
             if (isNearCurrentBird(touchPos, bird)) {
                 setBirdToLaunchPosition(bird);
-                isDragging = false;
                 return;
             }
         }
     }
 
     private void dragAndLaunchBird(Vector2 touchPos) {
-        if (isBirdAtLaunchPosition(currentBird)) {
+        if (currentBird != null && currentBird.isSelected() && isNearLaunchPosition(touchPos)) {
             isDragging = true;
+
             currentBird.setPosition(
                     touchPos.x - currentBird.getWidth() / 2,
                     touchPos.y - currentBird.getHeight() / 2
@@ -188,20 +192,28 @@ public class level1screen extends ScreenAdapter {
     }
 
     private void releaseBird() {
-        if (isAtLaunchPosition && isSignificantlyDragged(currentBird)) {
-            float forceX = (150 - currentBird.getX()) * 10;
-            float forceY = (GROUND_HEIGHT + 100 - currentBird.getY()) * 10;
+        if (currentBird != null && currentBird.isSelected() && isDragging) {
+            float dragX = currentBird.getX() + currentBird.getWidth() / 2;
+            float dragY = currentBird.getY() + currentBird.getHeight() / 2;
+
+            float launchX = 390;
+            float launchY = GROUND_HEIGHT + 170;
+
+            float forceX = (launchX - dragX) * 10;
+            float forceY = (launchY - dragY) * 10;
 
             currentBird.launch(forceX, forceY);
+
             resetLaunchState();
-        }
-        else {
+        } else {
             setBirdToLaunchPosition(currentBird);
         }
     }
 
     private void setBirdToLaunchPosition(Bird bird) {
         if (currentBird != null) {
+            currentBird.setSelected(false);
+
             float replacementX = bird.getX();
             float replacementY = GROUND_HEIGHT + 100;
             currentBird.setPosition(replacementX, replacementY);
@@ -209,6 +221,7 @@ public class level1screen extends ScreenAdapter {
         }
 
         currentBird = bird;
+        currentBird.setSelected(true);
         currentBird.setPosition(390, GROUND_HEIGHT + 170);
         updatePhysicsBodyTransform(currentBird);
         isAtLaunchPosition = true;
@@ -220,6 +233,7 @@ public class level1screen extends ScreenAdapter {
         float centerY = (bird.getY() + bird.getHeight() / 2) * Bird.WORLD_TO_BOX;
         body.setTransform(centerX, centerY, body.getAngle());
     }
+
 
     private boolean isBirdAtLaunchPosition(Bird bird) {
         float launchX = 150;
@@ -240,14 +254,21 @@ public class level1screen extends ScreenAdapter {
 
     private boolean isNearCurrentBird(Vector2 touchPos, Bird bird) {
         Vector2 birdPos = new Vector2(bird.getX() + bird.getWidth() / 2, bird.getY() + bird.getHeight() / 2);
-        return touchPos.dst(birdPos) < 30;
+        return touchPos.dst(birdPos) < 50;
+    }
+
+
+    private boolean isNearLaunchPosition(Vector2 touchPos) {
+        float launchX = 390;
+        float launchY = GROUND_HEIGHT + 170;
+        return Vector2.dst(touchPos.x, touchPos.y, launchX, launchY) < 50;
     }
 
     private void moveToNextBird() {
         if (currentBirdIndex < birds.length - 1) {
             currentBirdIndex++;
             currentBird = birds[currentBirdIndex];
-            currentBird.setPosition(150, GROUND_HEIGHT + 20);  // Set position for launch
+            currentBird.setPosition(150, GROUND_HEIGHT + 20);
         } else {
             System.out.println("All birds are launched!");
         }
