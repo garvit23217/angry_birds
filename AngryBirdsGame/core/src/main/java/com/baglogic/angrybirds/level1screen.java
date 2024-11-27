@@ -80,13 +80,19 @@ public class level1screen extends ScreenAdapter {
         stage = new Stage(game.getViewport());
 
         birds = new Bird[] {
-                new Blue(world, 125, GROUND_HEIGHT + 1000, 0.375f),
-                new Red(world, 175, GROUND_HEIGHT + 1000, 0.375f),
-                new Yellow(world, 225, GROUND_HEIGHT + 1000, 0.375f),
-                new Black(world, 275, GROUND_HEIGHT + 1000, 0.375f)
+                new Blue(world, 125, GROUND_HEIGHT + 100, 0.375f),
+                new Red(world, 175, GROUND_HEIGHT + 100, 0.375f),
+                new Yellow(world, 225, GROUND_HEIGHT + 100, 0.375f),
+                new Black(world, 275, GROUND_HEIGHT + 100, 0.375f)
         };
-        currentBird = birds[0];
-        stage.addActor(currentBird);
+
+        for (Bird bird : birds) {
+            stage.addActor(bird);
+        }
+
+        // Set the first bird as the current bird
+        //currentBird = birds[0];
+        //currentBird.setPosition(150, GROUND_HEIGHT + 20);  // Set position for launch
 
         pig1 = new Pig(world, 1400, GROUND_HEIGHT + 100, 0.375f);
         pig2 = new Pig(world, 1500, GROUND_HEIGHT + 1000, 0.625f);
@@ -146,30 +152,101 @@ public class level1screen extends ScreenAdapter {
         // debugRenderer.render(world, box2DCamera.combined);
     }
 
+    private boolean isAtLaunchPosition = false;
     private void handleBirdInput() {
+        Vector2 touchPos = stage.screenToStageCoordinates(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
+
         if (Gdx.input.isTouched()) {
-            Vector2 touchPos = stage.screenToStageCoordinates(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
-            if (currentBird.isTouched(touchPos.x, touchPos.y)) {
-                isDragging = true;
-                currentBird.setPosition(touchPos.x - currentBird.getWidth() / 2, touchPos.y - currentBird.getHeight() / 2);
+            if (!isDragging) {
+                if (currentBird == null) {
+                    // Select a bird if no bird is currently selected
+                    for (Bird bird : birds) {
+                        if (isNearCurrentBird(touchPos, bird)) {
+                            setBirdToLaunchPosition(bird); // Move bird to the launch position
+                            break;
+                        }
+                    }
+                } else if (isBirdAtLaunchPosition(currentBird)) {
+                    // If the bird is already at the launch position, allow dragging
+                    isDragging = true;
+                }
+            } else if (isDragging && currentBird != null) {
+                // Dragging the bird: update both Actor and physics body positions
+                currentBird.setPosition(
+                        touchPos.x - currentBird.getWidth() / 2,
+                        touchPos.y - currentBird.getHeight() / 2
+                );
+                updatePhysicsBodyPosition(currentBird);
             }
-        } else if (isDragging) {
+        } else if (isDragging && currentBird != null) {
+            // Handle bird release (launch or reset to launch position)
             isDragging = false;
 
-            // Launch the bird
-            float forceX = (150 - currentBird.getX()) * 10;
-            float forceY = (GROUND_HEIGHT + 20 - currentBird.getY()) * 10;
+            if (isAtLaunchPosition && isSignificantlyDragged(currentBird)) {
+                // Launch the bird if it was dragged far enough
+                float forceX = (150 - currentBird.getX()) * 10;
+                float forceY = (GROUND_HEIGHT + 100 - currentBird.getY()) * 10;
 
-            currentBird.launch(forceX, forceY);
-            moveToNextBird();
+                currentBird.launch(forceX, forceY);
+                resetLaunchState(); // Reset after launch
+            } else {
+                // Snap the bird back to the launch position
+                setBirdToLaunchPosition(currentBird);
+            }
         }
     }
+
+    // Helper: Move the selected bird to the launch position and sync physics body
+    private void setBirdToLaunchPosition(Bird bird) {
+        currentBird = bird;
+        currentBird.setPosition(150, GROUND_HEIGHT + 100);
+        updatePhysicsBodyPosition(currentBird); // Sync physics body
+        isAtLaunchPosition = true; // Mark as ready for launching
+    }
+
+    // Helper: Sync the bird's physics body with its Actor position
+    private void updatePhysicsBodyPosition(Bird bird) {
+        Body body = bird.getPhysicsBody(); // Assuming a getter for the physics body exists
+        body.setTransform(
+                (bird.getX() + bird.getWidth() / 2) * Bird.WORLD_TO_BOX,
+                (bird.getY() + bird.getHeight() / 2) * Bird.WORLD_TO_BOX,
+                body.getAngle()
+        );
+    }
+
+    // Helper: Check if the bird is currently at the launch position
+    private boolean isBirdAtLaunchPosition(Bird bird) {
+        float launchX = 150;
+        float launchY = GROUND_HEIGHT + 100;
+        return Vector2.dst(bird.getX(), bird.getY(), launchX, launchY) < 10; // Close enough
+    }
+
+    // Helper: Check if the bird was dragged far enough to justify launching
+    private boolean isSignificantlyDragged(Bird bird) {
+        float launchX = 150;
+        float launchY = GROUND_HEIGHT + 100;
+        return Vector2.dst(bird.getX(), bird.getY(), launchX, launchY) > 10; // Significant drag threshold
+    }
+
+    // Helper: Reset the state after a bird is launched
+    private void resetLaunchState() {
+        currentBird = null; // Clear the current bird
+        isAtLaunchPosition = false; // Reset the launch position flag
+    }
+
+    // Helper: Check if the touch is near the bird
+    private boolean isNearCurrentBird(Vector2 touchPos, Bird bird) {
+        Vector2 birdPos = new Vector2(bird.getX() + bird.getWidth() / 2, bird.getY() + bird.getHeight() / 2);
+        return touchPos.dst(birdPos) < 50; // 50 is the proximity threshold
+    }
+
+
 
     private void moveToNextBird() {
         if (currentBirdIndex < birds.length - 1) {
             currentBirdIndex++;
             currentBird = birds[currentBirdIndex];
-            stage.addActor(currentBird);
+            currentBird.setPosition(150, GROUND_HEIGHT + 20);  // Set position for launch
         } else {
             System.out.println("All birds are launched!");
         }

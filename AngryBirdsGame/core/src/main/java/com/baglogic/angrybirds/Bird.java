@@ -11,8 +11,8 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
 public abstract class Bird extends Actor {
-    private static final float WORLD_TO_BOX = 0.01f;
-    private static final float BOX_TO_WORLD = 100f;
+    public static final float WORLD_TO_BOX = 0.01f;
+    public static final float BOX_TO_WORLD = 100f;
 
     protected float hitpoints;
     protected Texture birdTexture;
@@ -109,4 +109,9 @@ public abstract class Bird extends Actor {
         float distance = Vector2.dst(centerX, centerY, touchX, touchY);
         return distance <= radius * BOX_TO_WORLD;
     }
+
+    public Body getPhysicsBody() {
+        return physicsBody;
+    }
+
 }
