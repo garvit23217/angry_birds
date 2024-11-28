@@ -25,6 +25,8 @@ public class Core extends Game {
     private Music backgroundMusic;
     private ScreenAdapter currentScreen;
     private ScreenAdapter currentLevel;
+    private boolean completelevel1 = false;
+    private boolean completelevel2 = false;
 
     @Override
     public void create() {
@@ -124,6 +126,22 @@ public class Core extends Game {
 
     public void pauseBackgroundMusic() {
         backgroundMusic.pause();
+    }
+
+    public void setCompletelevel1() {
+        completelevel1 = true;
+    }
+
+    public void setCompletelevel2() {
+        completelevel2 = true;
+    }
+
+    public boolean getCompleteLevel1() {
+        return completelevel1;
+    }
+
+    public boolean getCompleteLevel2() {
+        return completelevel2;
     }
 
     public void playBackgroundMusic() {

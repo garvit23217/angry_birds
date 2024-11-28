@@ -25,19 +25,15 @@ public class levelChooseScreen extends ScreenAdapter {
     public void show() {
         backgroundImage = new Texture("bg6.png");
         stage = new Stage(game.getViewport());
-        level1screen = new level1screen(game);
 
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
 
         Gdx.input.setInputProcessor(stage);
 
-        //System.out.println("Width: " + screenWidth);
-        //System.out.println("Height : " + screenHeight);
-
         Texture level1Texture = new Texture("lvl1.png");
-        Texture level2Texture = new Texture("lvl2.png");
-        Texture level3Texture = new Texture("lvl3.png");
+        Texture level2Texture = game.getCompleteLevel1() ? new Texture("lvl2.png") : new Texture("lock.png");
+        Texture level3Texture = game.getCompleteLevel2() ? new Texture("lvl3.png") : new Texture("lock.png");
         Texture backTexture = new Texture("back.png");
 
         ImageButton level1Button = new ImageButton(new TextureRegionDrawable(level1Texture));
@@ -68,19 +64,27 @@ public class levelChooseScreen extends ScreenAdapter {
             }
         });
 
-        level2Button.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(game.newlevel2screen());
-            }
-        });
+        if (game.getCompleteLevel1()) {
+            level2Button.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    game.setScreen(game.newlevel2screen());
+                }
+            });
+        } else {
+            level2Button.setDisabled(true);
+        }
 
-        level3Button.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(game.newlevel3screen());
-            }
-        });
+        if (game.getCompleteLevel2()) {
+            level3Button.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    game.setScreen(game.newlevel3screen());
+                }
+            });
+        } else {
+            level3Button.setDisabled(true);
+        }
 
         backButton.addListener(new ClickListener() {
             @Override
