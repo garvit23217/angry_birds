@@ -16,6 +16,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+
 public class level1screen extends ScreenAdapter {
     private static final float SCALING = 0.01f;
     private static final float BOX_TO_WORLD = 100f;
@@ -46,6 +51,8 @@ public class level1screen extends ScreenAdapter {
     private Body groundBody;
     private boolean isAtLaunchPosition = false;
     private float destructionTimer = 0f;
+    private final Map<Actor, Integer> groundCollisionCounts = new HashMap<>();
+    private final Set<Bird> launchedBirds = new HashSet<>();
 
     private static class CollisionEvent {
         Actor actorA;
@@ -115,11 +122,36 @@ public class level1screen extends ScreenAdapter {
                     maxImpulse = Math.max(maxImpulse, normalImpulse);
                 }
 
+                if (userDataA instanceof Actor && "ground".equals(userDataB)) {
+                    handleGroundCollision((Actor) userDataA);
+                } else if (userDataB instanceof Actor && "ground".equals(userDataA)) {
+                    handleGroundCollision((Actor) userDataB);
+                } else {
+                    // Reset ground collision count for non-ground collisions
+                    resetGroundCollisionCount(userDataA);
+                    resetGroundCollisionCount(userDataB);
+                }
+
+                // Debugging: Print the objects involved in the collision
+                System.out.println("PostSolve: Collision detected between " + userDataA + " and " + userDataB);
+
                 if (userDataA instanceof Bird && userDataB instanceof Rock) {
                     System.out.println("PostSolve: Bird collided with Rock");
                     queueCollisionHandling((Actor) userDataA, (Actor) userDataB, maxImpulse);
                 } else if (userDataA instanceof Rock && userDataB instanceof Bird) {
                     System.out.println("PostSolve: Rock collided with Bird");
+                    queueCollisionHandling((Actor) userDataB, (Actor) userDataA, maxImpulse);
+                } else if (userDataA instanceof Pig && userDataB instanceof Rock) {
+                    System.out.println("PostSolve: Pig collided with Rock");
+                    queueCollisionHandling((Actor) userDataA, (Actor) userDataB, maxImpulse);
+                } else if (userDataA instanceof Rock && userDataB instanceof Pig) {
+                    System.out.println("PostSolve: Rock collided with Pig");
+                    queueCollisionHandling((Actor) userDataB, (Actor) userDataA, maxImpulse);
+                } else if (userDataA instanceof Bird && userDataB instanceof Pig) {
+                    System.out.println("PostSolve: Bird collided with Pig");
+                    queueCollisionHandling((Actor) userDataA, (Actor) userDataB, maxImpulse);
+                } else if (userDataA instanceof Pig && userDataB instanceof Bird) {
+                    System.out.println("PostSolve: Pig collided with Bird");
                     queueCollisionHandling((Actor) userDataB, (Actor) userDataA, maxImpulse);
                 }
             }
@@ -170,17 +202,17 @@ public class level1screen extends ScreenAdapter {
             stage.addActor(bird);
         }
 
-        pig1 = new Pig(world, 1400, GROUND_HEIGHT + 100, 0.375f);
-        pig2 = new Pig(world, 1500, GROUND_HEIGHT + 1000, 0.625f);
+        pig1 = new Pig(world, 1400, GROUND_HEIGHT + 300, 0.375f);
+        pig2 = new Pig(world, 1500, GROUND_HEIGHT + 300, 0.625f);
 
         stage.addActor(pig1);
         stage.addActor(pig2);
         //stage.addActor(pig3);
 
         rockSquare1 = new Rock(world, 1300, GROUND_HEIGHT + 100);
-        rockSquare2 = new Rock(world, 1400, GROUND_HEIGHT + 500);
+        rockSquare2 = new Rock(world, 1300, GROUND_HEIGHT + 200);
         rockSquare3 = new Rock(world, 1500, GROUND_HEIGHT + 100);
-        rockSquare4 = new Rock(world, 1500, GROUND_HEIGHT + 500);
+        rockSquare4 = new Rock(world, 1500, GROUND_HEIGHT + 200);
 
         stage.addActor(rockSquare1);
         stage.addActor(rockSquare2);
@@ -268,6 +300,52 @@ public class level1screen extends ScreenAdapter {
         stage.draw();
     }
 
+    private void handleGroundCollision(Actor actor) {
+        if (actor instanceof Bird && !launchedBirds.contains(actor)) {
+            System.out.println("Skipping unlaunched bird: " + actor);
+            return;
+        }
+        if (actor instanceof Rock) {
+            System.out.println("Skipping rock: " + actor);
+            return;
+        }
+
+        int count = groundCollisionCounts.getOrDefault(actor, 0) + 1;
+        groundCollisionCounts.put(actor, count);
+
+        System.out.println("Ground collision count for " + actor + ": " + count);
+
+        if (count >= 3) {
+            System.out.println(actor + " has collided with the ground 3 times. Queuing for removal.");
+            actorsToRemove.add(actor);
+            if (actor instanceof Bird) {
+                queueBodyForDestruction(((Bird) actor).getPhysicsBody());
+            } else if (actor instanceof Pig) {
+                queueBodyForDestruction(((Pig) actor).getPhysicsBody());
+            }
+            groundCollisionCounts.remove(actor);
+        }
+    }
+
+    private void resetGroundCollisionCount(Object userData) {
+        if (userData instanceof Bird) {
+            Bird bird = (Bird) userData;
+            if (!launchedBirds.contains(bird)) {
+                return; // Ignore unlaunched birds
+            }
+        }
+        if (userData instanceof Rock) {
+            return; // Ignore rocks
+        }
+        if (userData instanceof Actor) {
+            Actor actor = (Actor) userData;
+            if (groundCollisionCounts.containsKey(actor)) {
+                groundCollisionCounts.remove(actor);
+                System.out.println("Reset ground collision count for " + actor);
+            }
+        }
+    }
+
     private void handleBirdInput() {
         Vector2 touchPos = stage.screenToStageCoordinates(new Vector2(Gdx.input.getX(), Gdx.input.getY()));
 
@@ -318,8 +396,14 @@ public class level1screen extends ScreenAdapter {
 
             currentBird.launch(velocityX, velocityY);
 
+            // Mark the bird as launched before resetting the state
+            launchedBirds.add(currentBird);
+            System.out.println("Bird added to launchedBirds: " + currentBird);
+
             isDragging = false;
             resetLaunchState();
+        } else {
+            System.out.println("Bird not launched: " + currentBird);
         }
     }
 
@@ -411,23 +495,58 @@ public class level1screen extends ScreenAdapter {
         float impulseScale = 2.0f;
 
         impulse *= impulseScale;
-        System.out.println("Actor A instance of: " + actorA);
-        System.out.println("Actor B instance of: " + actorB);
+        System.out.println("Actor A instance of: " + actorA.getClass().getSimpleName());
+        System.out.println("Actor B instance of: " + actorB.getClass().getSimpleName());
 
         if (actorA instanceof Bird && actorB == groundBody.getUserData()) {
             handleBirdGroundCollision((Bird) actorA);
         } else if (actorB instanceof Bird && "ground".equals(groundBody.getUserData())) {
             handleBirdGroundCollision((Bird) actorB);
         } else if (actorA instanceof Bird && actorB instanceof Rock) {
-            System.out.println("Bird rock collision");
+            System.out.println("Bird-Rock collision detected.");
             handleBirdRockCollision((Bird) actorA, (Rock) actorB, impulse, destructionThreshold);
         } else if (actorB instanceof Bird && actorA instanceof Rock) {
-            System.out.println("Bird rock collision");
+            System.out.println("Bird-Rock collision detected.");
             handleBirdRockCollision((Bird) actorB, (Rock) actorA, impulse, destructionThreshold);
         } else if (actorA instanceof Pig && actorB instanceof Rock) {
+            System.out.println("Pig-Rock collision detected.");
             handlePigRockCollision((Pig) actorA, (Rock) actorB, impulse, destructionThreshold);
         } else if (actorB instanceof Pig && actorA instanceof Rock) {
+            System.out.println("Pig-Rock collision detected.");
             handlePigRockCollision((Pig) actorB, (Rock) actorA, impulse, destructionThreshold);
+        } else if (actorA instanceof Bird && actorB instanceof Pig) {
+            System.out.println("Bird-Pig collision detected.");
+            handleBirdPigCollision((Bird) actorA, (Pig) actorB, impulse);
+        } else if (actorB instanceof Bird && actorA instanceof Pig) {
+            System.out.println("Bird-Pig collision detected.");
+            handleBirdPigCollision((Bird) actorB, (Pig) actorA, impulse);
+        }
+    }
+
+    private void handleBirdPigCollision(Bird bird, Pig pig, float impulse) {
+        System.out.println("Handling Bird-Pig collision...");
+        System.out.println("Initial Bird hitpoints: " + bird.getHitpoints());
+        System.out.println("Initial Pig hitpoints: " + pig.getHitpoints());
+
+        float birdDamageMultiplier = 5f;
+        float pigDamageMultiplier = 10f;
+
+        bird.reduceHitpoints(impulse * birdDamageMultiplier);
+        pig.reduceHitpoints(impulse * pigDamageMultiplier);
+
+        System.out.println("Updated Bird hitpoints: " + bird.getHitpoints());
+        System.out.println("Updated Pig hitpoints: " + pig.getHitpoints());
+
+        if (bird.getHitpoints() <= 0) {
+            System.out.println("Bird destroyed.");
+            actorsToRemove.add(bird);
+            queueBodyForDestruction(bird.getPhysicsBody());
+        }
+
+        if (pig.getHitpoints() <= 0) {
+            System.out.println("Pig destroyed.");
+            actorsToRemove.add(pig);
+            queueBodyForDestruction(pig.getPhysicsBody());
         }
     }
 
@@ -443,45 +562,49 @@ public class level1screen extends ScreenAdapter {
     }
 
     private void handleBirdRockCollision(Bird bird, Rock rock, float impulse, float threshold) {
-        System.out.println("Rock exists in stage: " + (rock.getStage() != null));
+        System.out.println("Handling Bird-Rock collision...");
+        System.out.println("Initial Rock hitpoints: " + rock.getHitpoints());
+        System.out.println("Initial Bird hitpoints: " + bird.getHitpoints());
 
-        Body body = rock.getPhysicsBody();
-        if (body.getUserData() != rock) {
-            System.out.println("Mismatch: Physics body userData does not match rock instance.");
-        }
+        bird.reduceHitpoints(impulse * 10f);
+        rock.reduceHitpoints(impulse * 20f);
 
-        bird.reduceHitpoints(impulse * 40f);
-        rock.reduceHitpoints(impulse * 50f);
-
-        // Debug: Check updated hitpoints
         System.out.println("Updated Rock hitpoints: " + rock.getHitpoints());
+        System.out.println("Updated Bird hitpoints: " + bird.getHitpoints());
 
         if (rock.isReadyToDestroy()) {
+            System.out.println("Rock destroyed.");
             actorsToRemove.add(rock);
             queueBodyForDestruction(rock.getPhysicsBody());
         }
 
         if (bird.getHitpoints() <= 0) {
+            System.out.println("Bird destroyed.");
             actorsToRemove.add(bird);
             queueBodyForDestruction(bird.getPhysicsBody());
         }
     }
 
-
     private void handlePigRockCollision(Pig pig, Rock rock, float impulse, float threshold) {
-        if (rock != null) {
-            rock.reduceHitpoints(impulse * 0.3f);
+        System.out.println("Handling Pig-Rock collision...");
+        System.out.println("Initial Rock hitpoints: " + rock.getHitpoints());
+        System.out.println("Initial Pig hitpoints: " + pig.getHitpoints());
 
-            if (rock.isReadyToDestroy()) {
-                actorsToRemove.add(rock);
-                queueBodyForDestruction(rock.getPhysicsBody());
-            }
+        rock.reduceHitpoints(impulse * 10f);
+        pig.reduceHitpoints(impulse * 1.1f);
+
+        System.out.println("Updated Rock hitpoints: " + rock.getHitpoints());
+        System.out.println("Updated Pig hitpoints: " + pig.getHitpoints());
+
+        if (rock.isReadyToDestroy()) {
+            System.out.println("Rock destroyed.");
+            actorsToRemove.add(rock);
+            queueBodyForDestruction(rock.getPhysicsBody());
         }
 
-        pig.reduceHitpoints(impulse * 0.1f);
-
         if (pig.getHitpoints() <= 0) {
-            pig.remove();
+            System.out.println("Pig destroyed.");
+            actorsToRemove.add(pig);
             queueBodyForDestruction(pig.getPhysicsBody());
         }
     }
@@ -506,11 +629,10 @@ public class level1screen extends ScreenAdapter {
         }
     }
 
-
     public void queueBodyForDestruction(Body body) {
         bodiesToDestroy.add(body);
+        System.out.println("Body queued for destruction: " + body);
     }
-
 
     @Override
     public void dispose() {
