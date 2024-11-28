@@ -63,6 +63,9 @@ public class Rock extends Actor {
         world.destroyBody(physicsBody);
     }
 
+    public Body getPhysicsBody() {
+        return physicsBody;
+    }
 
     public void dispose() {
         texture.dispose();
