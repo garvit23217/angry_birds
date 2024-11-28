@@ -14,15 +14,16 @@ public class Rock extends Actor {
     private Body physicsBody;
     private float width, height;
     private World world;
+    private float hitpoints;
 
     public Rock(World world, float x, float y) {
-        // Load square texture
         texture = new Texture("materials/rock/rock_square.png");
 
         // Calculate dimensions from texture size
         width = texture.getWidth() * WORLD_TO_BOX;
         height = texture.getHeight() * WORLD_TO_BOX;
         this.world = world;
+        this.hitpoints = 100.0f;
 
         // Create physics body
         BodyDef bodyDef = new BodyDef();
@@ -65,6 +66,18 @@ public class Rock extends Actor {
 
     public Body getPhysicsBody() {
         return physicsBody;
+    }
+
+    public boolean isReadyToDestroy() {
+        return hitpoints <= 0;
+    }
+
+    public void reduceHitpoints(float damage) {
+        hitpoints -= damage;
+    }
+
+    public float getHitpoints() {
+        return hitpoints;
     }
 
     public void dispose() {
