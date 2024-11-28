@@ -58,7 +58,15 @@ public class FailScreen extends ScreenAdapter {
         restartButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(game.newlevel1screen());
+                if (level == 1) {
+                    game.setScreen(game.newlevel1screen());
+                }
+                else if (level == 2) {
+                    game.setScreen(game.newlevel2screen());
+                }
+                else {
+                    game.setScreen(game.newlevel3screen());
+                }
             }
         });
 
