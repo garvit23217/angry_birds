@@ -27,6 +27,7 @@ data/uiskin/uiskin.png
 data/uiskin.atlas
 data/uiskin.json
 data/uiskin.png
+FailScreen.png
 libgdx.png
 loading.png
 logo.png
@@ -52,6 +53,7 @@ materials/wood/wood_triangle1.png
 menu.png
 menu2.png
 pause.png
+PauseScreen.png
 pig.png
 pig1.png
 play.png
