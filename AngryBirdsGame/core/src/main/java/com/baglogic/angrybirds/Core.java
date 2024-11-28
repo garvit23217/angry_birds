@@ -33,11 +33,12 @@ public class Core extends Game {
         backgroundMusic.setLooping(true);
         backgroundMusic.setVolume(0.75f);
         backgroundMusic.play();
+        backgroundMusic.pause();
 
         loadingScreen = new loadingScreen(this);
         levelChooseScreen = new levelChooseScreen(this);
         startScreen = new startScreen(this);
-//        level1screen = new level1screen(this);
+        //level1screen = new level1screen(this);
         //level2screen = new level2screen(this);
         //level3screen = new level3screen(this);
         setScreen(loadingScreen);

@@ -28,16 +28,10 @@ public class Pig extends Actor {
 
         // Create body in the world
         body = world.createBody(bodyDef);
-        body.setUserData(this);
 
-        // Create shape
-        PolygonShape shape = new PolygonShape();
-        shape.setAsBox(
-                (texture.getWidth() * scale / 2) * WORLD_TO_BOX,
-                (texture.getHeight() * scale / 2) * WORLD_TO_BOX
-        );
+        CircleShape shape = new CircleShape();
+        shape.setRadius((texture.getWidth() * scale / 2) * WORLD_TO_BOX);
 
-        // Create fixture
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 0.8f;
@@ -46,8 +40,8 @@ public class Pig extends Actor {
 
         body.createFixture(fixtureDef);
         shape.dispose();
+        body.setUserData(this);
 
-        // Set actor size
         setSize(texture.getWidth() * scale, texture.getHeight() * scale);
     }
 
