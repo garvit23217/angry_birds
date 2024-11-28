@@ -18,7 +18,7 @@ public class Pig extends Actor {
 
     public Pig(World world, float x, float y, float scale) {
         this.world = world;
-        this.hitpoints = scale * hitpointsFactor * scale;
+        this.hitpoints = 200 * scale;
         texture = new Texture("pig.png");
 
         // Create body definition
