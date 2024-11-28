@@ -51,6 +51,7 @@ public abstract class Bird extends Actor {
 
         physicsBody.createFixture(fixtureDef);
         shape.dispose();
+        physicsBody.setUserData(this);
 
         setSize(width, height);
         setPosition(x - width / 2, y - height / 2);

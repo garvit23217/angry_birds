@@ -1,6 +1,8 @@
 package com.baglogic.angrybirds;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -27,6 +29,7 @@ public class level1screen extends ScreenAdapter {
     private World world;
     private Box2DDebugRenderer debugRenderer;
     private OrthographicCamera box2DCamera;
+    private InputMultiplexer inputMultiplexer;
 
     private Bird[] birds;
     private int currentBirdIndex = 0;
@@ -52,6 +55,7 @@ public class level1screen extends ScreenAdapter {
         box2DCamera = new OrthographicCamera(Gdx.graphics.getWidth() * SCALING,
                 Gdx.graphics.getHeight() * SCALING);
 
+        // Update the world contact listener in the constructor
         world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
@@ -62,15 +66,27 @@ public class level1screen extends ScreenAdapter {
                 Object userDataB = bodyB.getUserData();
 
                 if (userDataA instanceof Actor && userDataB instanceof Actor) {
-                    System.out.println("Collision detected between: " + userDataA + " and " + userDataB);
+                    Gdx.app.log("Collision Begin", userDataA + " collided with " + userDataB);
                 }
             }
 
             @Override
-            public void endContact(Contact contact) {}
+            public void endContact(Contact contact) {
+                Body bodyA = contact.getFixtureA().getBody();
+                Body bodyB = contact.getFixtureB().getBody();
+
+                Object userDataA = bodyA.getUserData();
+                Object userDataB = bodyB.getUserData();
+
+                if (userDataA instanceof Actor && userDataB instanceof Actor) {
+                    Gdx.app.log("Collision End", userDataA + " stopped colliding with " + userDataB);
+                }
+            }
 
             @Override
-            public void preSolve(Contact contact, Manifold oldManifold) {}
+            public void preSolve(Contact contact, Manifold oldManifold) {
+                // Optional: Modify collision response if necessary
+            }
 
             @Override
             public void postSolve(Contact contact, ContactImpulse impulse) {
@@ -86,10 +102,10 @@ public class level1screen extends ScreenAdapter {
                 }
 
                 if (userDataA instanceof Actor && userDataB instanceof Actor) {
+                    Gdx.app.log("Collision Impulse", "Impulse: " + maxImpulse);
                     handleCollision((Actor) userDataA, (Actor) userDataB, maxImpulse);
                 }
             }
-
         });
     }
 
@@ -131,10 +147,7 @@ public class level1screen extends ScreenAdapter {
             stage.addActor(bird);
         }
 
-        // Set the first bird as the current bird
-        //currentBird = birds[0];
-        //currentBird.setPosition(150, GROUND_HEIGHT + 20);  // Set position for launch
-
+        // Add pigs and rocks as actors in the stage
         pig1 = new Pig(world, 1400, GROUND_HEIGHT + 100, 0.375f);
         pig2 = new Pig(world, 1500, GROUND_HEIGHT + 1000, 0.625f);
         pig3 = new Pig(world, 1300, GROUND_HEIGHT + 1000, 0.75f);
@@ -153,6 +166,7 @@ public class level1screen extends ScreenAdapter {
         stage.addActor(rockSquare3);
         stage.addActor(rockSquare4);
 
+        // Add pause button
         Texture pause = new Texture("pause.png");
         ImageButton pauseButton = new ImageButton(new TextureRegionDrawable(pause));
         pauseButton.setPosition(50, 1000);
@@ -167,7 +181,36 @@ public class level1screen extends ScreenAdapter {
 
         stage.addActor(pauseButton);
 
-        Gdx.input.setInputProcessor(stage);
+        // Initialize InputMultiplexer
+        inputMultiplexer = new InputMultiplexer();
+        inputMultiplexer.addProcessor(stage);
+        inputMultiplexer.addProcessor(new InputAdapter() {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                Vector2 touchPos = stage.screenToStageCoordinates(new Vector2(screenX, screenY));
+                selectBird(touchPos);
+                return true;
+            }
+
+            @Override
+            public boolean touchDragged(int screenX, int screenY, int pointer) {
+                Vector2 touchPos = stage.screenToStageCoordinates(new Vector2(screenX, screenY));
+                if (currentBird != null && currentBird.isSelected()) {
+                    dragAndLaunchBird(touchPos);
+                }
+                return true;
+            }
+
+            @Override
+            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+                if (isDragging && currentBird != null) {
+                    releaseBird();
+                }
+                return true;
+            }
+        });
+
+        Gdx.input.setInputProcessor(inputMultiplexer);
     }
 
     @Override
@@ -316,40 +359,49 @@ public class level1screen extends ScreenAdapter {
     }
 
     private void handleCollision(Actor actorA, Actor actorB, float impulse) {
-        float destructionThreshold = 30.0f; // Adjust as needed for balance
+        float destructionThreshold = 30.0f; // Impulse threshold for destruction
 
-        // Bird hits Pig
         if (actorA instanceof Bird && actorB instanceof Pig) {
             applyDamage((Bird) actorA, (Pig) actorB, impulse);
-        } else if (actorA instanceof Pig && actorB instanceof Bird) {
+        } else if (actorB instanceof Bird && actorA instanceof Pig) {
             applyDamage((Bird) actorB, (Pig) actorA, impulse);
+        } else if (actorA instanceof Bird && actorB instanceof Rock) {
+            handleBirdRockCollision((Bird) actorA, (Rock) actorB, impulse, destructionThreshold);
+        } else if (actorB instanceof Bird && actorA instanceof Rock) {
+            handleBirdRockCollision((Bird) actorB, (Rock) actorA, impulse, destructionThreshold);
+        } else if (actorA instanceof Pig && actorB instanceof Rock) {
+            handlePigRockCollision((Pig) actorA, (Rock) actorB, impulse, destructionThreshold);
+        } else if (actorB instanceof Pig && actorA instanceof Rock) {
+            handlePigRockCollision((Pig) actorB, (Rock) actorA, impulse, destructionThreshold);
         }
-        // Bird hits Rock
-        else if (actorA instanceof Bird && actorB instanceof Rock) {
-            applyDamage((Bird) actorA, null, impulse);
-            if (impulse > destructionThreshold) {
-                ((Rock) actorB).destroy(); // Destroy the rock
-            }
-        } else if (actorA instanceof Rock && actorB instanceof Bird) {
-            applyDamage((Bird) actorB, null, impulse);
-            if (impulse > destructionThreshold) {
-                ((Rock) actorA).destroy(); // Destroy the rock
-            }
+    }
+
+    private void handleBirdRockCollision(Bird bird, Rock rock, float impulse, float threshold) {
+        bird.reduceHitpoints(impulse * 0.2f); // Scale bird damage based on impulse
+        if (rock != null && impulse > threshold) {
+            rock.destroy(); // Destroy rock if the impulse exceeds the threshold
         }
-        // Pig hits Rock
-        else if (actorA instanceof Pig && actorB instanceof Rock) {
-            if (impulse > destructionThreshold) {
-                ((Rock) actorB).destroy();
-            }
-        } else if (actorA instanceof Rock && actorB instanceof Pig) {
-            if (impulse > destructionThreshold) {
-                ((Rock) actorA).destroy();
-            }
+
+        if (bird.getHitpoints() <= 0) {
+            bird.remove();
+            world.destroyBody(bird.getPhysicsBody());
+        }
+    }
+
+    private void handlePigRockCollision(Pig pig, Rock rock, float impulse, float threshold) {
+        if (rock != null && impulse > threshold) {
+            rock.destroy();
+        }
+        pig.reduceHitpoints(impulse * 0.1f);
+
+        if (pig.getHitpoints() <= 0) {
+            pig.remove();
+            world.destroyBody(pig.getPhysicsBody());
         }
     }
 
     private void applyDamage(Bird bird, Pig pig, float impulse) {
-        float damageMultiplier = 0.2f; // Scale damage based on impulse
+        float damageMultiplier = 0.2f;
 
         if (bird != null) {
             bird.reduceHitpoints(impulse * damageMultiplier);
