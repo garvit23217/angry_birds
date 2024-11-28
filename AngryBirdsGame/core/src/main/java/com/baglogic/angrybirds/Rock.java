@@ -42,6 +42,7 @@ public class Rock extends Actor {
 
         physicsBody.createFixture(fixtureDef);
         shape.dispose();
+        physicsBody.setUserData(this);
 
         setSize(width * BOX_TO_WORLD, height * BOX_TO_WORLD);
         setPosition(x - width * BOX_TO_WORLD / 2, y - height * BOX_TO_WORLD / 2);
