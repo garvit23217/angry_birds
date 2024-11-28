@@ -12,6 +12,8 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -54,10 +56,17 @@ public class level1screen extends ScreenAdapter {
     private final Map<Actor, Integer> groundCollisionCounts = new HashMap<>();
     private final Set<Bird> launchedBirds = new HashSet<>();
 
-    int pigs = 2;
-    int unrealeasedBirds = 4;
-    int rockDestroyed = 0;
-    int score = 0;
+    private int pigs = 2;
+    private int unrealeasedBirds = 4;
+    private int rockDestroyed = 0;
+    private int score = 0;
+
+    private boolean isLevelComplete = false;
+    private boolean isLevelFailed = false;
+    private float failTimer = 0f;
+
+    private Label scoreLabel;
+    private Skin skin;
 
     private static class CollisionEvent {
         Actor actorA;
@@ -136,28 +145,18 @@ public class level1screen extends ScreenAdapter {
                     resetGroundCollisionCount(userDataB);
                 }
 
-                // Debugging: Print the objects involved in the collision
-
-                //System.out.println("PostSolve: Collision detected between " + userDataA + " and " + userDataB);
-
-                if (userDataA instanceof Bird && userDataB instanceof Rock) {
-                    System.out.println("PostSolve: Bird collided with Rock");
-                    queueCollisionHandling((Actor) userDataA, (Actor) userDataB, maxImpulse);
-                } else if (userDataA instanceof Rock && userDataB instanceof Bird) {
-                    System.out.println("PostSolve: Rock collided with Bird");
-                    queueCollisionHandling((Actor) userDataB, (Actor) userDataA, maxImpulse);
-                } else if (userDataA instanceof Pig && userDataB instanceof Rock) {
-                    //System.out.println("PostSolve: Pig collided with Rock");
-                    //queueCollisionHandling((Actor) userDataA, (Actor) userDataB, maxImpulse);
-                } else if (userDataA instanceof Rock && userDataB instanceof Pig) {
-                    //System.out.println("PostSolve: Rock collided with Pig");
-                    //queueCollisionHandling((Actor) userDataB, (Actor) userDataA, maxImpulse);
+                if (userDataA instanceof Bird && userDataB instanceof Material) {
+                    System.out.println("PostSolve: Bird collided with Material");
+                    handleBirdMaterialCollision((Bird) userDataA, (Material) userDataB, maxImpulse);
+                } else if (userDataA instanceof Material && userDataB instanceof Bird) {
+                    System.out.println("PostSolve: Material collided with Bird");
+                    handleBirdMaterialCollision((Bird) userDataB, (Material) userDataA, maxImpulse);
                 } else if (userDataA instanceof Bird && userDataB instanceof Pig) {
                     System.out.println("PostSolve: Bird collided with Pig");
-                    queueCollisionHandling((Actor) userDataA, (Actor) userDataB, maxImpulse);
+                    handleBirdPigCollision((Bird) userDataA, (Pig) userDataB, maxImpulse);
                 } else if (userDataA instanceof Pig && userDataB instanceof Bird) {
                     System.out.println("PostSolve: Pig collided with Bird");
-                    queueCollisionHandling((Actor) userDataB, (Actor) userDataA, maxImpulse);
+                    handleBirdPigCollision((Bird) userDataB, (Pig) userDataA, maxImpulse);
                 }
             }
         });
@@ -166,6 +165,26 @@ public class level1screen extends ScreenAdapter {
     private void queueCollisionHandling(Actor actorA, Actor actorB, float impulse) {
         System.out.println("Queuing collision: " + actorA + " with " + actorB + ", impulse: " + impulse);
         collisionEvents.add(new CollisionEvent(actorA, actorB, impulse));
+    }
+
+    private void handleBirdMaterialCollision(Bird bird, Material material, float impulse) {
+        float birdDamageMultiplier = 20f;
+        float materialDamageMultiplier = 400f;
+
+        bird.reduceHitpoints(impulse * birdDamageMultiplier);
+        material.reduceHitpoints(impulse * materialDamageMultiplier);
+
+        if (bird.getHitpoints() <= 0) {
+            score += 1000; // Add score for bird destruction
+            actorsToRemove.add(bird);
+            queueBodyForDestruction(bird.getPhysicsBody());
+        }
+
+        if (material.isReadyToDestroy()) {
+            score += 10000; // Add score for material destruction
+            actorsToRemove.add(material);
+            queueBodyForDestruction(material.getPhysicsBody());
+        }
     }
 
     private void createGroundBody() {
@@ -223,6 +242,14 @@ public class level1screen extends ScreenAdapter {
         stage.addActor(rockSquare3);
         stage.addActor(rockSquare4);
 
+        skin = new Skin(Gdx.files.internal("data/uiskin.json"));
+
+        scoreLabel = new Label("Score: 0", skin);
+        scoreLabel.setPosition(800, Gdx.graphics.getHeight() - 10);
+        scoreLabel.setFontScale(4);
+
+        stage.addActor(scoreLabel);
+
         Texture pause = new Texture("pause.png");
         ImageButton pauseButton = new ImageButton(new TextureRegionDrawable(pause));
         pauseButton.setPosition(50, 1000);
@@ -231,7 +258,8 @@ public class level1screen extends ScreenAdapter {
         pauseButton.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                game.setScreen(game.levelChooseScreen);
+                game.setCurrentLevel(1, level1screen.this); // Store the current instance
+                game.setScreen(game.newpausescreen()); // Go to the PauseScreen
             }
         });
 
@@ -274,7 +302,6 @@ public class level1screen extends ScreenAdapter {
         }
         collisionEvents.clear();
 
-        // Safely process actor and body removals after collisions are handled
         if (!world.isLocked()) {
             destroyQueuedBodiesAndActors();
         }
@@ -282,31 +309,72 @@ public class level1screen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(1, 1, 1, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        world.step(delta, 6, 2);
-        processQueuedCollisions();
-
-        destructionTimer += delta;
-        if (destructionTimer >= DESTRUCTION_DELAY) {
-            destroyQueuedBodiesAndActors();
-            destructionTimer = 0f;
+        if (game.getScreen() != this) {
+            return;
         }
 
-        game.getBatch().begin();
-        game.getBatch().draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        game.getBatch().draw(slingShot, 150, 100, 150, 150);
-        game.getBatch().end();
+        if (!isLevelComplete && !isLevelFailed) {
+            // Regular game logic
+            Gdx.gl.glClearColor(1, 1, 1, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        handleBirdInput();
-        stage.act(delta);
-        stage.draw();
+            world.step(delta, 6, 2);
+            processQueuedCollisions();
+
+            destructionTimer += delta;
+            if (destructionTimer >= DESTRUCTION_DELAY) {
+                destroyQueuedBodiesAndActors();
+                destructionTimer = 0f;
+            }
+
+            game.getBatch().begin();
+            game.getBatch().draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            game.getBatch().draw(slingShot, 150, 100, 150, 150);
+            game.getBatch().end();
+
+            handleBirdInput();
+
+            scoreLabel.setText("Score: " + score);
+            stage.act(delta);
+            stage.draw();
+
+            // Check game state
+            checkGameState(delta);
+        } else if (isLevelComplete) {
+            // Handle level completion (e.g., show level complete screen)
+            //System.out.println("Level Passed! Score: " + score);
+            game.setScreen(game.newfinishedscreen(1, score));
+        } else if (isLevelFailed) {
+            // Handle level failure (e.g., show level failed screen)
+            //System.out.println("Level Failed! Score: " + score);
+            game.setScreen(game.newfailscreen(1));
+        }
     }
+
+    private void checkGameState(float delta) {
+        if (pigs <= 0) {
+            isLevelComplete = true;
+            System.out.println("All pigs destroyed! Level passed.");
+            return;
+        }
+
+        if (unrealeasedBirds == 0 && pigs > 0) {
+            failTimer += delta;
+            if (failTimer >= 10f) {
+                if (pigs > 0) {
+                    isLevelFailed = true;
+                    System.out.println("Level failed after waiting 10 seconds.");
+                }
+            }
+        } else {
+            failTimer = 0f; // Reset the timer if birds are still available
+        }
+    }
+
 
     private void handleGroundCollision(Actor actor) {
         if (actor instanceof Bird && !launchedBirds.contains(actor)) {
-            System.out.println("Skipping unlaunched bird: " + actor);
+            //System.out.println("Skipping unlaunched bird: " + actor);
             return;
         }
         if (actor instanceof Rock) {
@@ -317,10 +385,10 @@ public class level1screen extends ScreenAdapter {
         int count = groundCollisionCounts.getOrDefault(actor, 0) + 1;
         groundCollisionCounts.put(actor, count);
 
-        System.out.println("Ground collision count for " + actor + ": " + count);
+        //System.out.println("Ground collision count for " + actor + ": " + count);
 
         if (count >= 3) {
-            System.out.println(actor + " has collided with the ground 3 times. Queuing for removal.");
+            //System.out.println(actor + " has collided with the ground 3 times. Queuing for removal.");
             actorsToRemove.add(actor);
             if (actor instanceof Bird) {
                 queueBodyForDestruction(((Bird) actor).getPhysicsBody());
@@ -345,7 +413,7 @@ public class level1screen extends ScreenAdapter {
             Actor actor = (Actor) userData;
             if (groundCollisionCounts.containsKey(actor)) {
                 groundCollisionCounts.remove(actor);
-                System.out.println("Reset ground collision count for " + actor);
+                //System.out.println("Reset ground collision count for " + actor);
             }
         }
     }
@@ -402,12 +470,13 @@ public class level1screen extends ScreenAdapter {
 
             // Mark the bird as launched before resetting the state
             launchedBirds.add(currentBird);
-            System.out.println("Bird added to launchedBirds: " + currentBird);
+            unrealeasedBirds--;
+            //System.out.println("Bird added to launchedBirds: " + currentBird);
 
             isDragging = false;
             resetLaunchState();
         } else {
-            System.out.println("Bird not launched: " + currentBird);
+            //System.out.println("Bird not launched: " + currentBird);
         }
     }
 
@@ -438,6 +507,13 @@ public class level1screen extends ScreenAdapter {
 
         for (Actor actor : actorsToRemove) {
             if (actor.getStage() != null) {
+                if (actor instanceof Pig) {
+                    pigs--;
+                    score += 1000;
+                }
+                if (actor instanceof Bird) {
+                    score += 350;
+                }
                 actor.remove();
             }
         }
@@ -540,27 +616,20 @@ public class level1screen extends ScreenAdapter {
     }
 
     private void handleBirdPigCollision(Bird bird, Pig pig, float impulse) {
-        System.out.println("Handling Bird-Pig collision...");
-        System.out.println("Initial Bird hitpoints: " + bird.getHitpoints());
-        System.out.println("Initial Pig hitpoints: " + pig.getHitpoints());
-
         float birdDamageMultiplier = 30f;
-        float pigDamageMultiplier = 200f;
+        float pigDamageMultiplier = 1000f;
 
         bird.reduceHitpoints(impulse * birdDamageMultiplier);
         pig.reduceHitpoints(impulse * pigDamageMultiplier);
 
-        System.out.println("Updated Bird hitpoints: " + bird.getHitpoints());
-        System.out.println("Updated Pig hitpoints: " + pig.getHitpoints());
-
         if (bird.getHitpoints() <= 0) {
-            System.out.println("Bird destroyed.");
+            //score += 1000;
             actorsToRemove.add(bird);
             queueBodyForDestruction(bird.getPhysicsBody());
         }
 
         if (pig.getHitpoints() <= 0) {
-            System.out.println("Pig destroyed.");
+            //score += 1000;
             actorsToRemove.add(pig);
             queueBodyForDestruction(pig.getPhysicsBody());
         }

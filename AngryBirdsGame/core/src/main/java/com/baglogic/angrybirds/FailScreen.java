@@ -16,9 +16,11 @@ public class FailScreen extends ScreenAdapter {
     private final Core game;
     private Texture backgroundImage;
     private Stage stage;
+    private int level;
 
-    public FailScreen(Core game) {
+    public FailScreen(Core game, int level) {
         this.game = game;
+        this.level = level;
     }
 
     public void show() {

@@ -1,9 +1,6 @@
 package com.baglogic.angrybirds;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -22,7 +19,12 @@ public class Core extends Game {
     public Screen level1screen;
     public Screen level2screen;
     public Screen level3screen;
+    public Screen failScreen;
+    public Screen pauseScreen;
+    public Screen finishedScreen;
     private Music backgroundMusic;
+    private ScreenAdapter currentScreen;
+    private ScreenAdapter currentLevel;
 
     @Override
     public void create() {
@@ -48,12 +50,56 @@ public class Core extends Game {
     public void render() {
         super.render();
     }
-    public Screen newlevel1screen()
-    {
+
+    public Screen newlevel1screen() {
         level1screen = new level1screen(this);
         return level1screen;
     }
 
+    public Screen newlevel2screen() {
+        level2screen = new level2screen(this);
+        return level2screen;
+    }
+
+    public Screen newlevel3screen() {
+        level3screen = new level3screen(this);
+        return level3screen;
+    }
+
+    public Screen newfailscreen(int level) {
+        failScreen = new FailScreen(this, level);
+        return failScreen;
+    }
+
+    public Screen newpausescreen() {
+        pauseScreen = new PauseScreen(this);
+        return pauseScreen;
+    }
+
+    public Screen newfinishedscreen(int level, int score) {
+        finishedScreen = new FinishedScreen(this, level, score);
+        return finishedScreen;
+    }
+
+    public void setCurrentLevel(int level, ScreenAdapter levelScreen) {
+        if (level == 1) {
+            level1screen = levelScreen;
+        } else if (level == 2) {
+            level2screen = levelScreen;
+        } else if (level == 3) {
+            level3screen = levelScreen;
+        }
+        currentLevel = levelScreen;
+    }
+
+    public ScreenAdapter getCurrentLevel() {
+        return currentLevel;
+    }
+
+
+    public ScreenAdapter getCurrentScreen() {
+        return currentScreen;
+    }
 
     @Override
     public void dispose() {

@@ -71,10 +71,6 @@ public class Pig extends Actor {
 
     public void reduceHitpoints(float damage) {
         hitpoints -= damage;
-        if (hitpoints <= 0) {
-            remove();
-            world.destroyBody(body);
-        }
     }
 
 

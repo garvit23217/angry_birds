@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -16,9 +18,15 @@ public class FinishedScreen extends ScreenAdapter {
     private final Core game;
     private Texture backgroundImage;
     private Stage stage;
+    private int level;
+    private int score;
+    private Label scoreLabel;
+    private Skin skin;
 
-    public FinishedScreen(Core game) {
+    public FinishedScreen(Core game, int level, int score) {
         this.game = game;
+        this.level = level;
+        this.score = score;
     }
 
     public void show() {
@@ -41,6 +49,14 @@ public class FinishedScreen extends ScreenAdapter {
         menuDrawable.setMinWidth(600);
         menuDrawable.setMinHeight(600);
 
+        skin = new Skin(Gdx.files.internal("data/uiskin.json"));
+
+        scoreLabel = new Label("Score: " + score, skin);
+        scoreLabel.setPosition(750, Gdx.graphics.getHeight() - 300);
+        scoreLabel.setFontScale(6);
+
+        stage.addActor(scoreLabel);
+
         ImageButton nextlevelButton = new ImageButton(nextlevelDrawable);
         ImageButton menuButton = new ImageButton(menuDrawable);
 
@@ -56,7 +72,15 @@ public class FinishedScreen extends ScreenAdapter {
         nextlevelButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-//                game.setScreen(game.newlevel1screen());
+                if (level == 1) {
+                    game.setScreen(game.newlevel2screen());
+                }
+                else if (level == 2) {
+                    game.setScreen(game.newlevel3screen());
+                }
+                else {
+                    game.setScreen(game.levelChooseScreen);
+                }
             }
         });
 
