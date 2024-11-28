@@ -56,7 +56,12 @@ public class PauseScreen extends ScreenAdapter {
         resumeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-//                game.setScreen(game.newlevel1screen());
+                ScreenAdapter currentLevel = game.getCurrentLevel(); // Get the stored level
+                if (currentLevel != null) {
+                    game.setScreen(currentLevel); // Resume the stored level
+                } else {
+                    game.setScreen(game.newlevel1screen()); // Fallback if the current level is null
+                }
             }
         });
 
