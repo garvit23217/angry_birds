@@ -28,8 +28,11 @@ data/uiskin.atlas
 data/uiskin.json
 data/uiskin.png
 FailScreen.png
+FinishedScreen.png
 libgdx.png
 loading.png
+lock.png
+lockwbg.png
 logo.png
 logo2.png
 lvl1.png
@@ -52,6 +55,7 @@ materials/wood/wood_triangle.png
 materials/wood/wood_triangle1.png
 menu.png
 menu2.png
+NextLevel.png
 pause.png
 PauseScreen.png
 pig.png
@@ -63,6 +67,7 @@ restart.png
 resume.png
 settings.png
 slingshot.png
+temp.png
 theme.mp3
 whitebg.png
 yellow.png
