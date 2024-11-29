@@ -38,7 +38,7 @@ public class loadingScreen extends ScreenAdapter {
         time += delta;
 
         if (time > 3) {
-            //game.playBackgroundMusic();
+            game.playBackgroundMusic();
             game.setScreen(game.startScreen);
         }
     }

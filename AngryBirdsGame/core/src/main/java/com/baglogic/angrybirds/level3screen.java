@@ -266,7 +266,9 @@ public class level3screen extends ScreenAdapter {
         pauseButton.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener() {
             @Override
             public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y) {
-                game.setScreen(game.levelChooseScreen);
+                game.setCurrentLevel(3, level3screen.this);
+                // Navigate to the PauseScreen
+                game.setScreen(game.newpausescreen());
             }
         });
 

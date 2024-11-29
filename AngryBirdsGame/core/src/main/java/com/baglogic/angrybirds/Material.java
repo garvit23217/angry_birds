@@ -21,7 +21,6 @@ public abstract class Material extends Actor {
         this.hitpoints = initialHitpoints;
         this.texture = new Texture(texturePath);
 
-        // Calculate dimensions from texture size
         this.width = texture.getWidth() * WORLD_TO_BOX;
         this.height = texture.getHeight() * WORLD_TO_BOX;
 
