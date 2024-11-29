@@ -679,11 +679,11 @@ public class level1screen extends ScreenAdapter {
         rock.reduceHitpoints(impulse * 0.1f);
         pig.reduceHitpoints(impulse * 0.1f);
 
-        //System.out.println("Updated Rock hitpoints: " + rock.getHitpoints());
-        //System.out.println("Updated Pig hitpoints: " + pig.getHitpoints());
+        System.out.println("Updated Rock hitpoints: " + rock.getHitpoints());
+        System.out.println("Updated Pig hitpoints: " + pig.getHitpoints());
 
         if (rock.isReadyToDestroy()) {
-            //System.out.println("Rock destroyed.");
+            System.out.println("Rock destroyed.");
             actorsToRemove.add(rock);
             queueBodyForDestruction(rock.getPhysicsBody());
         }

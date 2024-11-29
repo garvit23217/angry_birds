@@ -26,7 +26,7 @@ public abstract class Bird extends Actor {
 
     public Bird(World world, float x, float y, float radius, String texturePath, float hitpoints) {
         this.world = world;
-        this.radius = radius; // Set the radius
+        this.radius = radius;
         this.width = (int) (radius * 2 * BOX_TO_WORLD);
         this.height = (int) (radius * 2 * BOX_TO_WORLD);
         this.hitpoints = hitpoints;
@@ -75,7 +75,6 @@ public abstract class Bird extends Actor {
     }
 
     public void launch(float velocityX, float velocityY) {
-        // Set the linear velocity of the bird's physics body directly
         physicsBody.setLinearVelocity(
                 new Vector2(velocityX * WORLD_TO_BOX, velocityY * WORLD_TO_BOX)
         );
@@ -105,9 +104,7 @@ public abstract class Bird extends Actor {
         birdTexture.dispose();
     }
 
-    // Circular touch detection
     public boolean isTouched(float touchX, float touchY) {
-        // Calculate the center of the bird
         float centerX = getX() + getWidth() / 2;
         float centerY = getY() + getHeight() / 2;
 
